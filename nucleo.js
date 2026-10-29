@@ -1089,11 +1089,24 @@
     return zip.generateAsync({ type: 'blob' });
   };
 
+  /* As duas formas de receber o guia. Cada uma leva uma ajuda curta; tocar no cartão já entrega o guia. */
+  const VIAS = {
+    link: { icone: 'link', titulo: 'Publicar link', rec: true,
+      ajuda: 'Cria um endereço para abrir no celular. O GPS funciona e o guia fica salvo para usar sem internet.' },
+    arquivo: { icone: 'download', titulo: 'Baixar arquivo',
+      ajuda: 'Um arquivo para mandar por WhatsApp ou e-mail. Funciona sem internet, mas o celular não libera o GPS.' }
+  };
+  const cartoesVia = () => `<div class="ll-vias">${Object.entries(VIAS).map(([id, v]) =>
+    `<button type="button" class="ll-via" data-via="${id}">
+      <span class="ll-via-ic">${LL.icone(v.icone)}</span>
+      <span class="ll-via-txt"><b>${v.titulo}${v.rec ? '<em class="ll-recomendado">recomendado</em>' : ''}</b><small>${v.ajuda}</small></span>
+      <span class="ll-via-fim">${LL.icone('chevron-right')}</span></button>`).join('')}</div>`;
+
   LL.ui.gerarGuia = (op = {}) => {
     const el = LL.h('<div class="ll-guia-ger"></div>');
     const paises = LL.paisesComLugares();
     const mes = new Date().toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' }).replace('.', '').replace(' de ', ' ');
-    const est = { pais: paises.some(p => p.id === op.pais) ? op.pais : paises[0]?.id, cidades: [], soFavoritos: false, fotos: true, titulo: '' };
+    const est = { pais: paises.some(p => p.id === op.pais) ? op.pais : paises[0]?.id, cidades: [], titulo: '' };
     const padraoCidades = () => { est.cidades = op.cidade && LL.cidade(op.cidade)?.pais === est.pais ? [op.cidade] : LL.cidadesDe(est.pais).map(c => c.id); };
     const tituloPadrao = () => `${LL.pais(est.pais).nome} · ${mes}`;
     padraoCidades(); est.titulo = tituloPadrao();
@@ -1101,138 +1114,108 @@
 
     const formulario = () => {
       el.innerHTML = `<div class="ll-form-corpo">
-        <p class="ll-ajuda">Um arquivo só, para mandar por WhatsApp ou e-mail e abrir no celular durante a viagem. <b>Funciona sem internet</b> — só o mapa precisa de conexão. É somente leitura: no celular dá para marcar “quero ir” e “já fui”, que ficam salvos só naquele aparelho.</p>
         <fieldset class="ll-grupo"><legend class="ll-legenda">País</legend>
           <div class="ll-chips" role="radiogroup" aria-label="País">${paises.map(p => `<button type="button" class="ll-chip" role="radio" aria-checked="${est.pais === p.id}" aria-pressed="${est.pais === p.id}" data-pais="${p.id}">${LL.bandeira(p.id)}<span>${esc(p.nome)}</span></button>`).join('')}</div></fieldset>
         <fieldset class="ll-grupo"><legend class="ll-legenda">Cidades da viagem</legend>
           <div class="ll-guia-cidades">${LL.cidadesDe(est.pais).map(c => `<label class="ll-guia-cidade"><span class="ll-check"><input type="checkbox" value="${c.id}" ${est.cidades.includes(c.id) ? 'checked' : ''}><span class="ll-check-caixa">${LL.icone('check')}</span></span>
             <span>${esc(c.nome)}</span><small>${LL.filtrar({ cidade: c.id }).length} lugares</small></label>`).join('')}</div>
           <div class="ll-chips"><button type="button" class="ll-btn ll-btn-sec ll-btn-peq" data-todas>Todas</button><button type="button" class="ll-btn ll-btn-sec ll-btn-peq" data-nenhuma>Nenhuma</button></div></fieldset>
-        <fieldset class="ll-grupo"><legend class="ll-legenda">Opções</legend>
-          <div class="ll-chips">${chip('Só os lugares “quero ir”', est.soFavoritos, 'data-sofav', 'heart')}</div>
-          <div class="ll-chips" role="radiogroup" aria-label="Fotos">${chip('1 foto por lugar, comprimida', est.fotos, 'data-fotos="1" role="radio"', 'photo')}${chip('Sem fotos', !est.fotos, 'data-fotos="0" role="radio"')}</div>
-          <label class="ll-campo"><span class="ll-rotulo">Nome do guia</span><input class="ll-input" name="titulo" value="${esc(est.titulo)}"></label></fieldset>
+        <label class="ll-campo"><span class="ll-rotulo">Nome do guia</span><input class="ll-input" name="titulo" value="${esc(est.titulo)}"></label>
         <div class="ll-guia-resumo" aria-live="polite"></div>
+        <section class="ll-grupo"><h3 class="ll-legenda">Como você quer receber o guia?</h3>${cartoesVia()}</section>
       </div>
-      <div class="ll-form-rodape"><button type="button" class="ll-btn ll-btn-sec" data-cancelar>Cancelar</button>
-        <button type="button" class="ll-btn ll-btn-pri" data-gerar>${LL.icone('device-mobile')}<span>Gerar guia</span></button></div>`;
+      <div class="ll-form-rodape"><button type="button" class="ll-btn ll-btn-sec" data-cancelar>Cancelar</button></div>`;
       const resumo = () => {
         const e = LL.estimarGuia(est), r = el.querySelector('.ll-guia-resumo');
-        r.innerHTML = e.lugares ? `<b>${e.lugares} lugares</b> · ${e.fotos} fotos · cerca de <b>${tamanho(e.bytes)}</b> <span>${e.bytes < 24e6 ? 'cabe no WhatsApp e no e-mail' : 'grande para e-mail; envie pelo WhatsApp'}</span>` : 'Escolha ao menos uma cidade com lugares.';
-        el.querySelector('[data-gerar]').disabled = !e.lugares;
+        r.innerHTML = e.lugares ? `<b>${e.lugares} lugares</b> · sem fotos · cerca de <b>${tamanho(e.bytes)}</b>` : 'Escolha ao menos uma cidade com lugares.';
+        el.querySelectorAll('[data-via]').forEach(b => { b.disabled = !e.lugares; });
       };
       el.querySelectorAll('[data-pais]').forEach(b => b.onclick = () => { const mudouTitulo = est.titulo !== tituloPadrao(); est.pais = b.dataset.pais; padraoCidades(); if (!mudouTitulo) est.titulo = tituloPadrao(); formulario(); });
       el.querySelectorAll('.ll-guia-cidade input').forEach(i => i.onchange = () => { est.cidades = [...el.querySelectorAll('.ll-guia-cidade input:checked')].map(x => x.value); resumo(); });
       el.querySelector('[data-todas]').onclick = () => { est.cidades = LL.cidadesDe(est.pais).map(c => c.id); formulario(); };
       el.querySelector('[data-nenhuma]').onclick = () => { est.cidades = []; formulario(); };
-      el.querySelector('[data-sofav]').onclick = e => { est.soFavoritos = !est.soFavoritos; e.currentTarget.setAttribute('aria-pressed', est.soFavoritos); resumo(); };
-      el.querySelectorAll('[data-fotos]').forEach(b => b.onclick = () => { est.fotos = b.dataset.fotos === '1'; el.querySelectorAll('[data-fotos]').forEach(x => { const on = (x.dataset.fotos === '1') === est.fotos; x.setAttribute('aria-pressed', on); x.setAttribute('aria-checked', on); }); resumo(); });
       el.querySelector('[name=titulo]').oninput = e => { est.titulo = e.target.value; };
+      el.querySelectorAll('[data-via]').forEach(b => b.onclick = () => executar(b.dataset.via));
       el.querySelector('[data-cancelar]').onclick = () => op.aoFechar && op.aoFechar();
-      el.querySelector('[data-gerar]').onclick = gerar;
       resumo();
     };
 
-    const gerar = async () => {
-      est.titulo = est.titulo.trim() || tituloPadrao();
+    /* ---------- fazer: monta o guia e já entrega do jeito escolhido ---------- */
+    const andamento = (texto, pct) => {
       el.innerHTML = `<div class="ll-imp-lendo"><p class="ll-imp-arquivo">${LL.icone('device-mobile')} ${esc(est.titulo)}</p>
-        <ol class="ll-passos"><li class="ll-ativo" data-p="fotos">${LL.icone('loader-2', 'll-gira')}${LL.icone('circle-check-filled', 'll-feito')}<span>Comprimindo fotos para o celular <b data-n></b></span></li>
-          <li data-p="arquivo">${LL.icone('loader-2', 'll-gira')}${LL.icone('circle-check-filled', 'll-feito')}<span>Embutindo mapa, ícones e fontes no arquivo</span></li></ol>
-        <div class="ll-guia-barra"><span></span></div></div>`;
-      const li = p => el.querySelector(`[data-p=${p}]`), barra = el.querySelector('.ll-guia-barra span');
-      if (!est.fotos) { li('fotos').classList.remove('ll-ativo'); li('fotos').classList.add('ll-ok'); li('fotos').querySelector('span').textContent = 'Sem fotos'; }
-      try {
-        const r = await LL.exportarGuia(est, (fase, n, total) => {
-          if (fase === 'fotos') { el.querySelector('[data-n]').textContent = `${n} de ${total}`; barra.style.width = `${Math.round(n / total * 85)}%`; }
-          else { li('fotos').classList.remove('ll-ativo'); li('fotos').classList.add('ll-ok'); li('arquivo').classList.add('ll-ativo'); barra.style.width = '92%'; }
-        });
+        <ol class="ll-passos"><li class="ll-ativo">${LL.icone('loader-2', 'll-gira')}<span>${texto}</span></li></ol>
+        <div class="ll-guia-barra"><span style="width:${pct}%"></span></div></div>`;
+    };
+    const falha = (msg, ajuda) => {
+      el.innerHTML = `<div class="ll-imp-fim"><p class="ll-erro">${LL.icone('alert-circle')} ${esc(msg)}</p>
+        <p class="ll-ajuda">${ajuda}</p><button type="button" class="ll-btn ll-btn-pri" data-de-novo>Voltar</button></div>`;
+      el.querySelector('[data-de-novo]').onclick = formulario;
+    };
+    const executar = async via => {
+      est.titulo = est.titulo.trim() || tituloPadrao();
+      if (via === 'link' && LL.config.semServidor) {
+        LL.toast('Nesta versão online de demonstração o “Publicar link” fica desligado: no protótipo ele publica pelo servidor de teste do computador. No sistema real, publica sozinho.', { icone: 'info-circle' });
+        return;
+      }
+      andamento('Montando o guia com mapa, ícones e fontes', 40);
+      let r;
+      try { r = await LL.exportarGuia(est); }
+      catch (e) { return falha(`Não consegui montar o guia: ${e.message}.`, 'Confira a internet do computador (o mapa e as fontes são baixados para dentro do arquivo) e tente de novo.'); }
+      if (via === 'arquivo') {
         if (url) URL.revokeObjectURL(url);
         url = URL.createObjectURL(r.blob);
-        pronto(r);
-      } catch (e) {
-        el.innerHTML = `<div class="ll-imp-fim"><p class="ll-erro">${LL.icone('alert-circle')} Não consegui gerar o guia: ${esc(e.message)}.</p>
-          <p class="ll-ajuda">Confira a internet do computador (as fotos e o mapa são baixados para dentro do arquivo) e tente de novo.</p>
-          <button type="button" class="ll-btn ll-btn-pri" data-de-novo>Tentar de novo</button></div>`;
-        el.querySelector('[data-de-novo]').onclick = formulario;
+        const a = document.createElement('a'); a.href = url; a.download = r.nome; document.body.append(a); a.click(); a.remove();
+        return prontoArquivo(r);
       }
+      andamento('Publicando o link', 80);
+      try {
+        const resp = await fetch('/api/publicar', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug: r.slug, arquivos: { 'index.html': r.htmlLink, 'sw.js': await baixarTexto('guia-sw.js') } }) });
+        const p = await resp.json().catch(() => ({}));
+        if (!resp.ok) throw new Error(p.erro || `o servidor respondeu ${resp.status}`);
+        prontoLink(r, p);
+      } catch (e) { falha(`Não consegui publicar: ${e.message}.`, 'O servidor de teste (servidor_mockups.py) precisa estar rodando no computador.'); }
     };
 
-    const pronto = r => {
-      const podeCompartilhar = navigator.canShare && navigator.canShare({ files: [new File([r.blob], r.nome, { type: 'text/html' })] });
-      el.innerHTML = `<div class="ll-guia-pronto">
-        <section class="ll-saida ll-saida-link">
-          <h3 class="ll-secao-titulo">${LL.icone('link')} Link — para usar na viagem <span class="ll-recomendado">recomendado</span></h3>
-          <p class="ll-ajuda">Abre com a <b>localização funcionando</b>. Depois de aberto uma vez com internet, fica guardado no celular e <b>funciona offline</b>.</p>
-          <div class="ll-link-caixa" data-caixa><span class="ll-ajuda">Toque em “Publicar link” para criar o endereço.</span></div>
-          <div class="ll-chips">
-            <button type="button" class="ll-btn ll-btn-pri" data-publicar>${LL.icone('link')}<span>Publicar link</span></button>
-            <button type="button" class="ll-btn ll-btn-sec" data-zip>${LL.icone('download')}<span>Baixar pacote do link (.zip)</span></button></div>
-          <p class="ll-ajuda ll-nota-sim">No protótipo, “Publicar link” publica no <b>seu computador</b> (servidor de teste), para abrir no celular pelo mesmo Wi-Fi. No sistema real, publica sozinho num site gratuito com https (Cloudflare Pages ou GitHub Pages) e abre o WhatsApp com o link pronto. O link não aparece em buscas, mas quem tiver o link consegue ver.</p>
-        </section>
-        <section class="ll-saida">
-          <h3 class="ll-secao-titulo">${LL.icone('file-type-html')} Arquivo — reserva, sem depender de nada</h3>
-          <p class="ll-ajuda">Funciona mesmo que o link nunca tenha sido aberto. Mas, aberto como arquivo, o celular <b>não libera a localização</b>: as distâncias são medidas a partir de um lugar escolhido (ex.: o hotel).</p>
-          <div class="ll-arquivo">${LL.icone('file-type-html')}<div><b>${esc(r.nome)}</b><small>${tamanho(r.blob.size)} · ${r.lugares} lugares · ${r.fotos} fotos · gerado agora</small></div></div>
-          <div class="ll-chips">
-            <a class="ll-btn ll-btn-sec" href="${url}" download="${esc(r.nome)}">${LL.icone('download')}<span>Baixar arquivo</span></a>
-            ${podeCompartilhar ? `<button type="button" class="ll-btn ll-btn-sec" data-compartilhar>${LL.icone('share')}<span>Compartilhar…</span></button>` : ''}
-            <a class="ll-btn ll-btn-sec" href="${url}" target="_blank" rel="noopener">${LL.icone('device-mobile')}<span>Abrir aqui</span></a></div>
-          <p class="ll-ajuda">Para mandar: WhatsApp → clipe → <b>Documento</b> (não “Foto”), ou anexo de e-mail. No celular, abra com o <b>Chrome</b>.</p>
-        </section>
-        <p class="ll-ajuda">Mudou algo depois? Gere de novo e reenvie — o guia mostra a data em que foi gerado.</p>
-        <div class="ll-form-rodape"><button type="button" class="ll-btn ll-btn-sec" data-outro>Gerar outro guia</button><button type="button" class="ll-btn ll-btn-pri" data-fechar-guia>Concluir</button></div></div>`;
-      const c = el.querySelector('[data-compartilhar]');
-      if (c) c.onclick = () => navigator.share({ files: [new File([r.blob], r.nome, { type: 'text/html' })], title: r.nome }).catch(() => {});
-      const caixa = el.querySelector('[data-caixa]');
-      const publicado = async p => {
-        const msg = `Guia de viagem ${r.nome.replace(/^Guia |\.html$/g, '')}: ${p.rede}`;
-        caixa.classList.add('ll-link-pub');
-        caixa.innerHTML = `<canvas class="ll-qr" width="168" height="168" aria-label="QR code do link"></canvas>
-          <div class="ll-link-info"><p><b>Publicado no seu computador.</b> No celular (mesmo Wi-Fi), aponte a câmera para o QR code ou abra:</p>
-            <a href="${esc(p.rede)}" target="_blank" rel="noopener"><code>${esc(p.rede)}</code></a>
-            <div class="ll-chips"><button type="button" class="ll-btn ll-btn-sec ll-btn-peq" data-copiar>${LL.icone('link')}<span>Copiar link</span></button>
-              <a class="ll-btn ll-btn-sec ll-btn-peq" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">${LL.icone('share')}<span>Enviar pelo WhatsApp</span></a>
-              <a class="ll-btn ll-btn-sec ll-btn-peq" href="${esc(p.local)}" target="_blank" rel="noopener">${LL.icone('device-mobile')}<span>Abrir aqui</span></a></div>
-            <p class="ll-ajuda">Este endereço de teste é <b>http</b>. Para a localização funcionar nele, ative no Chrome do celular <code>chrome://flags</code> → “Insecure origins treated as secure” com <code>${esc(p.rede.split('/publicados')[0])}</code>. No sistema real o link é https e isso não é preciso.</p></div>`;
-        caixa.querySelector('[data-copiar]').onclick = () => navigator.clipboard?.writeText(p.rede).then(() => LL.toast('Link copiado.', { icone: 'link' }), () => LL.toast(p.rede));
-        try {
-          if (!window.QRious) await new Promise((ok, erro) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js'; s.onload = ok; s.onerror = erro; document.head.append(s); });
-          new QRious({ element: caixa.querySelector('canvas'), value: p.rede, size: 168, padding: 8 });
-        } catch (e) { caixa.querySelector('canvas').remove(); }
-      };
-      el.querySelector('[data-publicar]').onclick = async e => {
-        const b = e.currentTarget, rot = b.querySelector('span');
-        if (LL.config.semServidor) {
-          LL.toast('Nesta versão online de demonstração o “Publicar link” fica desligado: no protótipo ele publica pelo servidor de teste do computador. No sistema real, publica sozinho.', { icone: 'info-circle' });
-          return;
-        }
-        b.disabled = true; rot.textContent = 'Publicando…';
-        try {
-          const resp = await fetch('/api/publicar', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ slug: r.slug, arquivos: { 'index.html': r.htmlLink, 'sw.js': await baixarTexto('guia-sw.js') } }) });
-          const p = await resp.json().catch(() => ({}));
-          if (!resp.ok) throw new Error(p.erro || `o servidor respondeu ${resp.status}`);
-          await publicado(p);
-          rot.textContent = 'Publicar de novo';
-        } catch (erro) {
-          rot.textContent = 'Publicar link';
-          LL.toast(`Não consegui publicar: ${erro.message}. O servidor de teste (servidor_mockups.py) precisa estar rodando.`, { icone: 'alert-circle' });
-        }
-        b.disabled = false;
-      };
-      el.querySelector('[data-zip]').onclick = async e => {
-        const b = e.currentTarget; b.disabled = true;
-        try {
-          const z = await LL.pacoteDoLink(r), a = document.createElement('a');
-          a.href = URL.createObjectURL(z); a.download = `${r.slug}.zip`; document.body.append(a); a.click(); a.remove();
-          setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-          LL.toast(`Pacote ${r.slug}.zip baixado (${tamanho(z.size)}).`, { icone: 'download' });
-        } catch (erro) { LL.toast(`Não consegui montar o pacote: ${erro.message}.`, { icone: 'alert-circle' }); }
-        b.disabled = false;
-      };
+    const rodapePronto = () => `<div class="ll-form-rodape"><button type="button" class="ll-btn ll-btn-sec" data-outro>Gerar outro guia</button><button type="button" class="ll-btn ll-btn-pri" data-fechar-guia>Concluir</button></div>`;
+    const ligarRodape = () => {
       el.querySelector('[data-outro]').onclick = formulario;
       el.querySelector('[data-fechar-guia]').onclick = () => op.aoFechar && op.aoFechar();
     };
+
+    const prontoLink = async (r, p) => {
+      const msg = `Guia de viagem ${r.nome.replace(/^Guia |\.html$/g, '')}: ${p.rede}`;
+      el.innerHTML = `<div class="ll-guia-pronto"><p class="ll-pronto-titulo">${LL.icone('circle-check-filled')} Link publicado</p>
+        <div class="ll-link-caixa ll-link-pub"><canvas class="ll-qr" width="168" height="168" aria-label="QR code do link"></canvas>
+          <div class="ll-link-info"><p>No celular, aponte a câmera para o QR code ou abra o endereço:</p>
+            <a href="${esc(p.rede)}" target="_blank" rel="noopener"><code>${esc(p.rede)}</code></a>
+            <div class="ll-chips"><button type="button" class="ll-btn ll-btn-sec ll-btn-peq" data-copiar>${LL.icone('link')}<span>Copiar link</span></button>
+              <a class="ll-btn ll-btn-sec ll-btn-peq" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">${LL.icone('share')}<span>Enviar pelo WhatsApp</span></a></div></div></div>
+        <p class="ll-ajuda">Abra uma vez com internet. Depois o guia fica guardado no celular e funciona sem internet.</p>
+        <details class="ll-ajuda"><summary>Só no protótipo: GPS neste endereço de teste</summary>
+          <p>O endereço de teste é <b>http</b>. Para o GPS funcionar, ative no Chrome do celular <code>chrome://flags</code> → “Insecure origins treated as secure” com <code>${esc(p.rede.split('/publicados')[0])}</code>. No sistema real o link é https e isso não é preciso.</p></details>
+        ${rodapePronto()}</div>`;
+      ligarRodape();
+      el.querySelector('[data-copiar]').onclick = () => navigator.clipboard?.writeText(p.rede).then(() => LL.toast('Link copiado.', { icone: 'link' }), () => LL.toast(p.rede));
+      try {
+        if (!window.QRious) await new Promise((ok, erro) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js'; s.onload = ok; s.onerror = erro; document.head.append(s); });
+        new QRious({ element: el.querySelector('canvas'), value: p.rede, size: 168, padding: 8 });
+      } catch (e) { el.querySelector('canvas')?.remove(); }
+    };
+
+    const prontoArquivo = r => {
+      const podeCompartilhar = navigator.canShare && navigator.canShare({ files: [new File([r.blob], r.nome, { type: 'text/html' })] });
+      el.innerHTML = `<div class="ll-guia-pronto"><p class="ll-pronto-titulo">${LL.icone('circle-check-filled')} Arquivo baixado</p>
+        <div class="ll-arquivo">${LL.icone('file-type-html')}<div><b>${esc(r.nome)}</b><small>${tamanho(r.blob.size)} · ${r.lugares} lugares</small></div></div>
+        <div class="ll-chips"><a class="ll-btn ll-btn-sec" href="${url}" download="${esc(r.nome)}">${LL.icone('download')}<span>Baixar de novo</span></a>
+          ${podeCompartilhar ? `<button type="button" class="ll-btn ll-btn-sec" data-compartilhar>${LL.icone('share')}<span>Compartilhar…</span></button>` : ''}</div>
+        <p class="ll-ajuda">Para mandar: WhatsApp → clipe → <b>Documento</b> (não “Foto”), ou anexo de e-mail. No celular, abra com o <b>Chrome</b>.</p>
+        ${rodapePronto()}</div>`;
+      ligarRodape();
+      const c = el.querySelector('[data-compartilhar]');
+      if (c) c.onclick = () => navigator.share({ files: [new File([r.blob], r.nome, { type: 'text/html' })], title: r.nome }).catch(() => {});
+    };
+
     formulario();
     return el;
   };
