@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lista de Lugares — escolha o design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Big+Shoulders+Display:wght@900&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap">
+<style>
+:root { --fundo: #f4f4f1; --tinta: #1d1e22; --tinta-2: #55585f; --linha: #d9d9d3; --sup: #fff; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fundo); color: var(--tinta); font-family: 'Schibsted Grotesk', system-ui, sans-serif; line-height: 1.5; }
+::selection { background: #f5e211; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid #2ba0ff; outline-offset: 2px; }
+.cab { max-width: 1240px; margin: 0 auto; padding: 48px 24px 24px; }
+.cab h1 { margin: 0; font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1; letter-spacing: -.04em; font-weight: 800; max-width: 18ch; }
+.cab p { max-width: 70ch; color: var(--tinta-2); font-size: 1.08rem; margin: 16px 0 0; }
+.comum { max-width: 1240px; margin: 0 auto; padding: 8px 24px 28px; }
+.comum ul { margin: 10px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.comum li { padding: 6px 12px; border-radius: 99px; background: var(--sup); border: 1px solid var(--linha); font-size: .9rem; font-weight: 600; }
+.comum h2, .outras h2, .teste h2 { margin: 0; font-size: 1.15rem; font-weight: 800; letter-spacing: -.01em; }
+.opcoes { max-width: 1240px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.opcao { background: var(--sup); border-radius: 18px; border: 1px solid var(--linha); overflow: hidden; display: flex; flex-direction: column; }
+.vitrine { position: relative; display: block; height: 300px; overflow: hidden; background: var(--c-fundo); border-bottom: 1px solid var(--linha); }
+.vitrine iframe { position: absolute; left: 0; top: 0; width: 1280px; height: 1000px; border: 0; transform: scale(var(--k, .3)); transform-origin: 0 0; pointer-events: none; }
+.vitrine::after { content: 'Abrir protótipo →'; position: absolute; right: 12px; bottom: 12px; padding: 6px 14px; border-radius: 99px; background: var(--tinta); color: #fff; font-weight: 700; font-size: .85rem; opacity: 0; transform: translateY(6px); transition: .2s; }
+.vitrine:hover::after, .vitrine:focus-visible::after { opacity: 1; transform: none; }
+.corpo { padding: 20px 22px 24px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
+.letra { font-size: .85rem; font-weight: 800; color: var(--tinta-2); }
+.nome { margin: 0; font-size: 2rem; line-height: 1; }
+.a .nome { font-family: 'Bowlby One', sans-serif; font-weight: 400; color: #1e40af; }
+.b .nome { font-family: 'Big Shoulders Display', sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+.c .nome { font-weight: 800; letter-spacing: -.04em; }
+.ideia { margin: 0; font-size: 1.02rem; }
+dl { margin: 0; display: grid; gap: 10px; }
+dt { font-size: .78rem; font-weight: 800; color: var(--tinta-2); }
+dd { margin: 2px 0 0; font-size: .95rem; }
+.cores { display: flex; gap: 4px; }
+.cores span { width: 26px; height: 26px; border-radius: 6px; border: 1px solid rgba(0,0,0,.12); }
+.prs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.prs ul { margin: 4px 0 0; padding-left: 18px; font-size: .92rem; }
+.prs h3 { margin: 0; font-size: .82rem; font-weight: 800; }
+.mais { color: #1f7a45; } .menos { color: #b4232f; }
+.abrir { margin-top: auto; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 99px; background: var(--tinta); color: #fff; text-decoration: none; font-weight: 800; }
+.abrir:hover { background: #000; }
+.guia-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 99px; border: 1.5px solid var(--tinta); color: var(--tinta); text-decoration: none; font-weight: 700; margin-top: -4px; }
+.guia-link:hover { background: var(--fundo); }
+.teste, .outras { max-width: 1240px; margin: 0 auto; padding: 36px 24px 0; }
+.teste ol { margin: 10px 0 0; padding-left: 22px; max-width: 80ch; }
+.teste li { margin-bottom: 6px; }
+.outras ul { margin: 10px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+.outras li { padding: 12px 14px; border-radius: 12px; border: 1px dashed var(--linha); font-size: .9rem; color: var(--tinta-2); }
+.outras b { color: var(--tinta); }
+.rodape { max-width: 1240px; margin: 0 auto; padding: 36px 24px 60px; color: var(--tinta-2); font-size: .85rem; }
+@media (max-width: 1060px) { .opcoes { grid-template-columns: 1fr; max-width: 680px; } .vitrine { height: 340px; } }
+@media (max-width: 560px) { .prs { grid-template-columns: 1fr; } .vitrine { height: 240px; } .cab { padding-top: 32px; } }
+</style>
+</head>
+<body>
+<header class="cab">
+  <h1>Lista de Lugares: escolha o jeito</h1>
+  <p>Três protótipos clicáveis do sistema inteiro, com dados de demonstração do Japão. O caminho é o mesmo nos três: <b>País → Cidade → Tipo de local → Lugar</b>. O que muda é o visual e a forma de navegar. Abra cada um, clique à vontade (nada é salvo de verdade) e escolha qual parece mais fácil e divertido.</p>
+  <p><b>Antes da viagem</b> tudo é cadastrado no sistema (no computador). <b>Na viagem</b>, o botão <b>“Guia p/ celular”</b> gera o guia somente leitura de dois jeitos: um <b>link</b> (com GPS; abriu uma vez, funciona sem internet) e um <b>arquivo</b> <code>.html</code> de reserva para WhatsApp ou e-mail (sem GPS). Cada alternativa tem o seu guia no mesmo visual.</p>
+</header>
+
+<section class="comum" aria-labelledby="comum-t">
+  <h2 id="comum-t">Igual nos três protótipos</h2>
+  <ul>
+    <li>Guia de celular somente leitura, que funciona sem internet</li>
+    <li>Campos próprios por tipo (restaurante, hotel, transporte…)</li><li>Horário em etiquetas + nota</li><li>Preço em faixa $ e em ¥ com ≈ R$</li>
+    <li>Colar coordenadas → mini-mapa + país e cidade sugeridos</li><li>Fotos: arrastar, escolher ou colar (Ctrl+V)</li>
+    <li>Distância e tempo a pé (GPS simulado em Shibuya) ou a partir de um lugar</li><li>Quero ir · Já fui · contagem por cidade</li>
+    <li>Busca rápida</li><li>Mapa da cidade</li><li>Importar PDF com revisão completa</li><li>Apagar com “Desfazer”</li><li>Criar tipos novos</li>
+  </ul>
+</section>
+
+<main class="opcoes">
+  <article class="opcao a" style="--c-fundo:#eef1f7">
+    <a class="vitrine" href="a-postais.html" aria-label="Abrir protótipo A, Postais"><iframe src="a-postais.html#/jp/toquio" title="Prévia A" loading="lazy" tabindex="-1"></iframe></a>
+    <div class="corpo">
+      <span class="letra">Alternativa A</span>
+      <h2 class="nome">Postais</h2>
+      <p class="ideia">Cada nível é uma tela inteira, como folhear cartões-postais. Os nomes de país e cidade aparecem em letras grandes com a foto dentro, cada tipo é um selo e “já fui” deixa um carimbo do correio.</p>
+      <dl>
+        <div><dt>Navegação</dt><dd>Uma tela por nível, com trilha no topo (Japão › Tóquio › Restaurantes) e o botão voltar do navegador.</dd></div>
+        <div><dt>Momento divertido</dt><dd>O carimbo postal batendo na ficha ao marcar “já fui” e o selo que pula ao passar o mouse.</dd></div>
+        <div><dt>Cores</dt><dd class="cores" aria-label="azul correio, vermelho, branco, tinta marinho"><span style="background:#1e40af"></span><span style="background:#d7263d"></span><span style="background:#fff"></span><span style="background:#14213d"></span></dd></div>
+      </dl>
+      <div class="prs"><div><h3 class="mais">A favor</h3><ul><li>O mais fácil de entender: sempre uma coisa por vez</li><li>Fica igual no PC e no celular</li><li>Muita personalidade de viagem</li></ul></div>
+        <div><h3 class="menos">Contra</h3><ul><li>Mais cliques para pular de cidade ou de tipo</li><li>No PC, menos coisas visíveis ao mesmo tempo</li></ul></div></div>
+      <a class="abrir" href="a-postais.html">Abrir Postais →</a>
+      <a class="guia-link" href="guia-postais.html">Ver o guia de celular dos Postais →</a>
+    </div>
+  </article>
+
+  <article class="opcao b" style="--c-fundo:#0e0f11">
+    <a class="vitrine" href="b-painel.html" aria-label="Abrir protótipo B, Painel de partidas"><iframe src="b-painel.html#/jp/toquio/restaurante" title="Prévia B" loading="lazy" tabindex="-1"></iframe></a>
+    <div class="corpo">
+      <span class="letra">Alternativa B</span>
+      <h2 class="nome">Painel de partidas</h2>
+      <p class="ideia">Inspirado no painel de embarque de estação: no PC, as colunas País | Cidade | Tipo | Lugares ficam lado a lado e a ficha abre como uma quinta coluna. Distâncias e títulos aparecem em plaquinhas que viram.</p>
+      <dl>
+        <div><dt>Navegação</dt><dd>Colunas lado a lado, como um explorador de arquivos: troca de cidade ou tipo com um clique, sem sair da tela. No celular, um nível por vez.</dd></div>
+        <div><dt>Momento divertido</dt><dd>As letras viram em cascata ao ordenar por “mais perto” ou ao entrar num tipo.</dd></div>
+        <div><dt>Cores</dt><dd class="cores" aria-label="preto do painel, âmbar, verde, aço"><span style="background:#0e0f11"></span><span style="background:#ffb400"></span><span style="background:#45d27a"></span><span style="background:#a3a8b0"></span></dd></div>
+      </dl>
+      <div class="prs"><div><h3 class="mais">A favor</h3><ul><li>O mais rápido no PC: tudo à vista</li><li>Lista densa e fácil de comparar (distância alinhada)</li><li>Ótimo para quem vai cadastrar muito</li></ul></div>
+        <div><h3 class="menos">Contra</h3><ul><li>Tema escuro: na rua, sob sol forte, lê-se pior</li><li>Mais “sério” que os outros dois</li></ul></div></div>
+      <a class="abrir" href="b-painel.html">Abrir Painel →</a>
+      <a class="guia-link" href="guia-painel.html">Ver o guia de celular do Painel →</a>
+    </div>
+  </article>
+
+  <article class="opcao c" style="--c-fundo:#f5f1e4">
+    <a class="vitrine" href="c-mapa-guia.html" aria-label="Abrir protótipo C, Mapa-guia"><iframe src="c-mapa-guia.html#/jp/toquio" title="Prévia C" loading="lazy" tabindex="-1"></iframe></a>
+    <div class="corpo">
+      <span class="letra">Alternativa C</span>
+      <h2 class="nome">Mapa-guia</h2>
+      <p class="ideia">Como o mapinha colorido de um parque: uma página só, com fileiras de cápsulas (país, cidade, tipo) que filtram os lugares logo abaixo. A mancha de “terra” muda de forma e cor a cada filtro.</p>
+      <dl>
+        <div><dt>Navegação</dt><dd>Uma página com filtros em cápsulas. Dá até para ver “todos os restaurantes do Japão” sem escolher a cidade. A ficha abre por cima.</dd></div>
+        <div><dt>Momento divertido</dt><dd>A bolinha da cápsula atravessa para o outro lado ao selecionar; a mancha de terra se remodela com “mola”.</dd></div>
+        <div><dt>Cores</dt><dd class="cores" aria-label="verde terra, amarelo sol, coral, azul lago, creme"><span style="background:#8ed462"></span><span style="background:#f5e211"></span><span style="background:#ff705d"></span><span style="background:#2ba0ff"></span><span style="background:#f5f1e4"></span></dd></div>
+      </dl>
+      <div class="prs"><div><h3 class="mais">A favor</h3><ul><li>O mais alegre e colorido</li><li>Flexível: filtra por qualquer nível</li><li>Fotos grandes, bom para “passear” pelos lugares</li></ul></div>
+        <div><h3 class="menos">Contra</h3><ul><li>A hierarquia fica menos explícita (são filtros)</li><li>No celular, os filtros ocupam mais altura</li></ul></div></div>
+      <a class="abrir" href="c-mapa-guia.html">Abrir Mapa-guia →</a>
+      <a class="guia-link" href="guia-mapa-guia.html">Ver o guia de celular do Mapa-guia →</a>
+    </div>
+  </article>
+</main>
+
+<section class="teste" aria-labelledby="teste-t">
+  <h2 id="teste-t">Roteiro rápido para testar cada um</h2>
+  <ol>
+    <li>Navegue <b>Japão → Tóquio → Restaurantes</b> e abra o <b>Ichiran Shibuya</b>.</li>
+    <li>Na lista, clique em <b>Usar minha localização</b> (simulada em Shibuya) e veja distância, tempo a pé e “Mais perto”. Depois troque para <b>Medir a partir de… Park Hyatt Tokyo</b>.</li>
+    <li>Clique em <b>Novo lugar</b>: escolha Restaurante, depois Hotel, depois Transporte, e veja os campos mudarem. Cole <code>35.6614, 139.7010</code> no campo de coordenadas.</li>
+    <li>Marque e desmarque <b>Quero ir</b> e <b>Já fui</b>; apague um lugar e use <b>Desfazer</b>.</li>
+    <li>Clique em <b>Importar PDF → Usar o PDF de exemplo</b>. Resolva os 2 repetidos, mova a imagem do takoyaki para o “Takoyaki Wanaka”, desmarque um lugar e salve.</li>
+    <li>Clique em <b>Guia p/ celular</b>, escolha Tóquio e Quioto e gere o guia. Veja as duas saídas: o <b>link</b> (no protótipo, simulado) e o <b>arquivo</b> de reserva. Mande o arquivo para o celular (WhatsApp → <b>Documento</b>), abra com o Chrome e teste com o modo avião: tudo funciona, menos o mapa e a localização.</li>
+    <li>Nos guias de exemplo (links acima), marque “já fui” e recarregue a página: a marcação continua lá.</li>
+  </ol>
+</section>
+
+<section class="outras" aria-labelledby="outras-t">
+  <h2 id="outras-t">Outras ideias consideradas e deixadas de fora</h2>
+  <ul>
+    <li><b>Mapa de metrô</b>: cada tipo como uma linha colorida e cada lugar como uma estação. Ficou de fora para dar lugar ao painel de partidas, que tem a mesma lógica de viagem.</li>
+    <li><b>Catálogo com miniaturas e círculos à caneta</b>: a ideia de circular favoritos e riscar visitados inspirou o carimbo da A.</li>
+    <li><b>Capa de disco com códigos de cor</b>: recusada por esconder os nomes; ficou a regra de cada tipo ter sempre a mesma cor.</li>
+    <li><b>Página de livro de referência</b> e <b>horário de bolso inclinado</b>: sérios demais para “simples e divertido”.</li>
+  </ul>
+</section>
+
+<p class="rodape">Dados de demonstração inventados: horários, preços e dicas são fictícios e as coordenadas são aproximadas. Fotos do Wikimedia Commons. Mapas © OpenStreetMap · © CARTO. Nenhuma IA é chamada nestes protótipos: a importação de PDF é uma simulação.</p>
+<script>
+  const ajustar = () => document.querySelectorAll('.vitrine').forEach(v => v.style.setProperty('--k', v.clientWidth / 1280));
+  addEventListener('resize', ajustar); ajustar();
+</script>
+</body>
+</html>

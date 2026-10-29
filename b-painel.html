@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lista de Lugares — B · Painel de partidas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="nucleo.css">
+<style>
+:root {
+  --fundo: #0e0f11; --superficie: #18191c; --superficie-2: #23252a; --painel-fundo: #141518;
+  --tinta: #f3f3f1; --tinta-2: #a9aeb8; --linha: #33363d; --placeholder: #8d93a0;
+  --destaque: #ffb400; --destaque-hover: #ffc533; --destaque-tinta: #121212; --anel: rgba(255,180,0,.25); --anel-forte: rgba(255,180,0,.6);
+  --ok: #45d27a; --perigo: #ff6b5e; --fav: #ffb400; --aviso: #ffb400; --aviso-fundo: #3a2c06; --aviso-tinta: #ffd56b;
+  --raio: 6px; --raio-chip: 4px; --raio-btn: 4px; --raio-input: 4px;
+  --fonte: 'Barlow', system-ui, sans-serif; --fonte-titulo: 'Big Shoulders Display', 'Barlow Condensed', sans-serif; --fonte-cond: 'Barlow Condensed', 'Barlow', sans-serif;
+  --sombra: 0 10px 24px -8px rgba(0,0,0,.6);
+  --chip-ativo: var(--destaque); --chip-ativo-tinta: #121212; --toast-fundo: #f3f3f1; --toast-tinta: #121212; --toast-acao: #a35f00;
+  --selecao: var(--destaque); --selecao-tinta: #121212; --dicas-fundo: #22201a; --resumo-fundo: #1f2126; --veu: rgba(0,0,0,.6);
+  --tipo-atrativo: #ff7a66; --tipo-restaurante: #ffa94d; --tipo-hotel: #7aa7ff; --tipo-cafe: #d9a77e;
+  --tipo-compras: #f783ac; --tipo-bar: #b49bff; --tipo-transporte: #3bc9db; --tipo-experiencia: #69db7c;
+  --aco: linear-gradient(180deg, #c9ccd1 0%, #a3a8b0 48%, #8d929a 52%, #b4b8bf 100%);
+}
+html, body { height: 100%; }
+body { display: flex; flex-direction: column; overflow: hidden; }
+/* ---------- moldura de aço ---------- */
+.topo { flex: none; background: var(--aco); color: #16171a; border-bottom: 3px solid #050506; position: relative; }
+.topo::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(255,255,255,.07) 0 1px, transparent 1px 3px); pointer-events: none; }
+.topo-in { position: relative; display: flex; align-items: center; gap: 14px; padding: 10px 18px; }
+.parafuso { width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #eee, #6d7179 70%); box-shadow: inset 0 0 0 1px rgba(0,0,0,.35); flex: none; }
+.marca { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #121315; white-space: nowrap; }
+.marca b { font-family: var(--fonte-titulo); font-weight: 900; font-size: 1.55rem; letter-spacing: .06em; text-transform: uppercase; line-height: 1; }
+.marca-placa { display: inline-flex; gap: 2px; }
+.marca-placa span { display: grid; place-items: center; width: 20px; height: 26px; background: #111; color: var(--destaque); font-family: var(--fonte-titulo); font-weight: 900; border-radius: 2px; position: relative; }
+.marca-placa span::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #000; }
+.busca { flex: 1; max-width: 420px; margin-left: auto; position: relative; }
+.busca .ti { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #8d93a0; }
+.busca input { width: 100%; min-height: 40px; border-radius: 4px; border: 1px solid #000; background: #111214; color: var(--tinta); padding: .4em .8em .4em 2.4em; font-family: var(--fonte-cond); font-size: 1.05rem; letter-spacing: .03em; }
+.busca input::placeholder { color: #8d93a0; }
+.busca input:focus { outline: 2px solid var(--destaque); outline-offset: 1px; }
+.topo-acoes { display: flex; gap: 8px; }
+.topo .ll-btn { font-family: var(--fonte-cond); font-size: 1rem; letter-spacing: .04em; text-transform: uppercase; min-height: 40px; }
+.topo .ll-btn-sec { background: #1a1b1e; color: #f3f3f1; border-color: #000; }
+.topo .ll-btn-sec:hover { background: #26282d; border-color: #000; }
+.topo .ll-btn-pri { border-color: #000; }
+
+/* ---------- colunas ---------- */
+.colunas { flex: 1; min-height: 0; display: grid; grid-template-columns: 190px 220px 220px minmax(0, 1fr); background: #050506; gap: 2px; }
+.colunas.com-ficha { grid-template-columns: 64px 200px 200px minmax(0, 1fr) min(480px, 38vw); }
+.col { background: var(--fundo); display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.col-cab { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px 10px; border-bottom: 2px solid #050506; background: #131417; }
+.col-cab h2 { margin: 0; font-family: var(--fonte-cond); font-weight: 700; font-size: .85rem; letter-spacing: .16em; color: var(--tinta-2); text-transform: uppercase; }
+.col-corpo { flex: 1; overflow-y: auto; min-height: 0; }
+.linha-col { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 8px 14px; border: 0; border-bottom: 1px solid #1f2125; background: transparent; color: var(--tinta);
+  text-decoration: none; text-align: left; font-family: var(--fonte-cond); font-size: 1.12rem; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; transition: background-color .12s; }
+.linha-col:hover { background: #1a1c20; }
+.linha-col[aria-current="true"] { background: var(--destaque); color: #121212; }
+.linha-col[aria-current="true"] .num, .linha-col[aria-current="true"] .sub-col { color: #3a2a00; }
+.linha-col .nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.linha-col .num { font-family: var(--fonte-titulo); font-weight: 800; font-size: 1.15rem; color: var(--tinta-2); font-variant-numeric: tabular-nums; }
+.linha-col .ti { font-size: 1.35rem; color: var(--cor-tipo, inherit); }
+.linha-col[aria-current="true"] .ti { color: #121212; }
+.linha-col .ll-bandeira { width: 1.4em; height: 1.05em; }
+.sub-col { display: block; font-size: .8rem; color: var(--tinta-2); letter-spacing: .06em; font-weight: 600; }
+.completa { font-size: .7rem; font-weight: 700; letter-spacing: .1em; color: #0e0f11; background: var(--ok); padding: 1px 6px; border-radius: 2px; margin-left: 6px; vertical-align: 2px; }
+.col-vazia { padding: 22px 16px; color: #6e7480; font-family: var(--fonte-cond); font-size: 1rem; letter-spacing: .08em; text-transform: uppercase; }
+.colunas.com-ficha .col-pais .nome, .colunas.com-ficha .col-pais .num, .colunas.com-ficha .col-pais .col-cab h2 { display: none; }
+.colunas.com-ficha .col-pais .linha-col { justify-content: center; padding: 8px; }
+.rodape-col { flex: none; padding: 10px 12px; border-top: 1px solid #1f2125; }
+.rodape-col .ll-btn { width: 100%; font-family: var(--fonte-cond); text-transform: uppercase; letter-spacing: .05em; }
+
+/* ---------- placas que viram (assinatura) ---------- */
+.placas { display: inline-flex; flex-wrap: wrap; gap: 4px .4em; font-family: var(--fonte-titulo); font-weight: 800; text-transform: uppercase; line-height: 1; }
+.palavra { display: inline-flex; gap: 2px; white-space: nowrap; }
+.colunas.com-ficha .titulo-quadro { font-size: clamp(1.2rem, 1.8vw, 1.6rem); }
+.fc { display: inline-grid; place-items: center; min-width: .66em; height: 1.28em; padding: 0 .06em; background: linear-gradient(#26282c 0 50%, #1d1f22 50%); color: #f6f6f2; border-radius: 2px; position: relative; }
+.fc::after { content: ''; position: absolute; left: 0; right: 0; top: calc(50% - .5px); height: 1px; background: #000; }
+.fc.esp { background: transparent; min-width: .35em; }
+.fc.gira { animation: vira .055s linear; }
+@keyframes vira { 0% { transform: scaleY(1); } 50% { transform: scaleY(.15); } 100% { transform: scaleY(1); } }
+.placas.ambar .fc { color: var(--destaque); }
+.titulo-quadro { font-size: clamp(1.4rem, 2.6vw, 2.2rem); }
+.dist .fc { font-size: 1.1rem; }
+
+/* ---------- quadro de lugares ---------- */
+.quadro-cab { flex: none; padding: 14px 18px 12px; display: flex; flex-direction: column; gap: 12px; border-bottom: 2px solid #050506; background: #131417; }
+.quadro-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; color: var(--tinta-2); font-family: var(--fonte-cond); font-size: 1rem; letter-spacing: .05em; text-transform: uppercase; }
+.barra { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+.ordem { display: flex; gap: 4px; align-items: center; }
+.ordem .ll-chip { font-family: var(--fonte-cond); text-transform: uppercase; letter-spacing: .05em; font-size: .9rem; min-height: 34px; }
+.tabela { width: 100%; border-collapse: collapse; }
+.tabela th { position: sticky; top: 0; z-index: 1; background: #0e0f11; text-align: left; font-family: var(--fonte-cond); font-weight: 700; font-size: .78rem; letter-spacing: .14em; color: #8d93a0;
+  text-transform: uppercase; padding: 10px 12px; border-bottom: 1px solid #2a2c31; white-space: nowrap; }
+.tabela td { padding: 10px 12px; border-bottom: 1px solid #1f2125; vertical-align: middle; }
+.tabela tr.lin { cursor: pointer; transition: background-color .12s; }
+.tabela tr.lin:hover { background: #17191c; }
+.tabela tr.lin[aria-current="true"] { background: #2a2108; }
+.tabela tr.lin[aria-current="true"] .lugar-nome { color: var(--destaque); }
+.c-tipo { width: 44px; }
+.c-tipo .ti { font-size: 1.4rem; color: var(--cor-tipo); }
+.lugar-nome { display: block; font-family: var(--fonte-cond); font-weight: 700; font-size: 1.22rem; letter-spacing: .02em; text-transform: uppercase; line-height: 1.15; color: var(--tinta); text-decoration: none; }
+.lugar-nome:focus-visible { outline-offset: 4px; }
+.lugar-res { display: block; color: var(--tinta-2); font-size: .9rem; margin-top: 2px; }
+.c-dist { white-space: nowrap; text-align: right; }
+.pe { display: block; color: var(--tinta-2); font-size: .85rem; font-family: var(--fonte-cond); letter-spacing: .03em; margin-top: 3px; }
+.c-estado { width: 112px; white-space: nowrap; text-align: right; }
+.lamp { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 4px; border: 1px solid #2c2f35; background: #121316; color: #5e636d; font-size: 1.15rem; }
+.lamp:hover { color: var(--tinta); border-color: #4a4e56; }
+.lamp[data-fav][aria-pressed="true"] { color: #121212; background: var(--destaque); border-color: var(--destaque); }
+.lamp[data-vis][aria-pressed="true"] { color: #0e0f11; background: var(--ok); border-color: var(--ok); }
+.quadro-corpo { flex: 1; overflow: auto; min-height: 0; }
+.quadro-vazio { padding: 40px 20px; color: #6e7480; font-family: var(--fonte-cond); font-size: 1.1rem; letter-spacing: .08em; text-transform: uppercase; text-align: center; }
+.mapa-wrap { flex: 1; min-height: 0; padding: 12px; }
+.mapa-wrap .ll-mapa { height: 100%; border-radius: 4px; border: 1px solid #2a2c31; }
+.inicio-quadro { padding: 28px 22px; display: flex; flex-direction: column; gap: 22px; }
+.inicio-quadro h1 { margin: 0; }
+.inicio-numeros { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 2px; background: #050506; border: 2px solid #050506; border-radius: 4px; }
+.inicio-numeros div { background: #131417; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.inicio-numeros span { font-family: var(--fonte-cond); font-size: .8rem; letter-spacing: .14em; color: var(--tinta-2); text-transform: uppercase; }
+.inicio-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ---------- ficha no painel ---------- */
+.col-ficha .col-corpo { padding: 14px 18px; }
+.col-ficha .ll-ficha-titulo { font-family: var(--fonte-titulo); font-weight: 900; text-transform: uppercase; letter-spacing: .01em; font-size: clamp(1.8rem, 2.8vw, 2.5rem); }
+.col-ficha .ll-ficha-fotos img { height: 220px; }
+.col-ficha .ll-acao { border-radius: 4px; font-family: var(--fonte-cond); text-transform: uppercase; letter-spacing: .05em; font-size: .95rem; }
+.ll-acao-fav[aria-pressed="true"] { background: var(--destaque); color: #121212 !important; border-color: var(--destaque) !important; }
+.ll-acao-vis[aria-pressed="true"] { background: var(--ok); color: #0e0f11 !important; border-color: var(--ok) !important; }
+.ll-destaques { border-radius: 4px; background: #050506; border-color: #050506; }
+.ll-destaque { background: #17181b; }
+.ll-destaque dt { font-family: var(--fonte-cond); letter-spacing: .12em; text-transform: uppercase; color: var(--cor-tipo); }
+.ll-preco b { color: var(--destaque); font-family: var(--fonte-titulo); font-size: 1.4rem; letter-spacing: .02em; }
+.ll-tipo-chip { font-family: var(--fonte-cond); text-transform: uppercase; letter-spacing: .06em; font-size: .85rem; border-radius: 3px; color: #121212; background: var(--cor-tipo); }
+.ll-tipo-op[aria-checked="true"], .ll-tipo-op[aria-checked="true"] .ti { color: #121212; }
+.ll-pino, .ll-tipo-ic { color: #121212; border-color: #121212; }
+.ll-painel-titulo { font-weight: 900; text-transform: uppercase; letter-spacing: .03em; }
+.ll-painel { border-left: 3px solid #050506; }
+.ll-btn { font-family: var(--fonte-cond); text-transform: uppercase; letter-spacing: .05em; font-size: 1rem; }
+.ll-dicas { border: 1px solid #3b3523; }
+.ll-check input:checked + .ll-check-caixa { color: #0e0f11; }
+.voltar-mob { display: none; }
+
+/* ---------- celular: um nível por vez ---------- */
+@media (max-width: 900px) {
+  .topo-in { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+  .parafuso { display: none; }
+  .busca { order: 3; flex-basis: 100%; max-width: none; }
+  .topo-acoes { margin-left: auto; }
+  .topo-acoes .ll-btn span { display: none; }
+  .topo-acoes .ll-btn { min-width: 42px; padding: 0 10px; }
+  .colunas, .colunas.com-ficha { display: block; overflow-y: auto; }
+  .col { display: none; min-height: 100%; }
+  .col.ativa { display: flex; }
+  .col-corpo, .quadro-corpo { overflow: visible; }
+  .voltar-mob { display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: var(--destaque); font-family: var(--fonte-cond); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; font-size: 1rem; padding: 4px 0; text-decoration: none; }
+  .tabela thead { display: none; }
+  .tabela tr.lin { display: grid; grid-template-columns: 36px 1fr auto; grid-template-areas: "t n d" "t e e"; align-items: start; padding: 12px 12px 10px; border-bottom: 1px solid #1f2125; gap: 4px 8px; }
+  .tabela td { padding: 0; border: 0; }
+  .c-tipo { grid-area: t; width: auto; padding-top: 4px !important; }
+  .c-nome { grid-area: n; }
+  .c-dist { grid-area: d; }
+  .c-estado { grid-area: e; width: auto; text-align: left; display: flex; gap: 6px; }
+  .dist .fc { font-size: .95rem; }
+  .mapa-wrap { height: 70vh; }
+  .col-ficha .col-corpo { padding: 12px 14px; }
+}
+</style>
+</head>
+<body>
+<header class="topo">
+  <div class="topo-in">
+    <span class="parafuso" aria-hidden="true"></span>
+    <a class="marca" href="#/"><span class="marca-placa" aria-hidden="true"><span>L</span><span>L</span></span><b>Lista de Lugares</b></a>
+    <form class="busca" role="search" onsubmit="return false"><i class="ti ti-search" aria-hidden="true"></i><input type="search" id="busca" placeholder="Buscar lugar, cidade ou comida" aria-label="Buscar" autocomplete="off"></form>
+    <div class="topo-acoes">
+      <button type="button" class="ll-btn ll-btn-sec" id="b-guia" aria-label="Gerar guia para o celular"><i class="ti ti-device-mobile" aria-hidden="true"></i><span>Guia p/ celular</span></button>
+      <button type="button" class="ll-btn ll-btn-sec" id="b-importar" aria-label="Importar PDF"><i class="ti ti-file-type-pdf" aria-hidden="true"></i><span>Importar PDF</span></button>
+      <button type="button" class="ll-btn ll-btn-pri" id="b-novo" aria-label="Novo lugar"><i class="ti ti-plus" aria-hidden="true"></i><span>Novo lugar</span></button>
+    </div>
+    <span class="parafuso" aria-hidden="true"></span>
+  </div>
+</header>
+<div class="colunas" id="colunas">
+  <section class="col col-pais" aria-label="Países"><div class="col-cab"><h2>País</h2></div><div class="col-corpo" id="c-pais"></div></section>
+  <section class="col col-cidade" aria-label="Cidades"><div class="col-cab" id="cab-cidade"><h2>Cidade</h2></div><div class="col-corpo" id="c-cidade"></div></section>
+  <section class="col col-tipo" aria-label="Tipos de local"><div class="col-cab" id="cab-tipo"><h2>Tipo</h2></div><div class="col-corpo" id="c-tipo"></div><div class="rodape-col" id="r-tipo"></div></section>
+  <section class="col col-lugares" aria-label="Lugares" id="c-lugares"></section>
+  <aside class="col col-ficha" aria-label="Ficha do lugar" id="c-ficha" hidden></aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="dados-japao.js"></script>
+<script src="nucleo.js"></script>
+<script>
+(function () {
+  const { esc, icone } = LL;
+  LL.config.mapa = 'escuro';
+  const $ = id => document.getElementById(id);
+  const colunas = $('colunas'), busca = $('busca');
+  const reduz = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const celular = () => matchMedia('(max-width: 900px)').matches;
+  let est = {}, ordem = 'favoritos', mapa = null;
+
+  /* ---------- placas que viram ---------- */
+  const SORTE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const placas = (txt, cls) => `<span class="placas ${cls || ''}" role="text" aria-label="${esc(txt)}" data-placas>${String(txt).toUpperCase().split(' ').filter(Boolean)
+    .map(p => `<span class="palavra" aria-hidden="true">${[...p].map(c => `<span class="fc">${esc(c)}</span>`).join('')}</span>`).join('')}</span>`;
+  const virar = raiz => {
+    if (reduz) return;
+    raiz.querySelectorAll('[data-placas]').forEach((grupo, g) => [...grupo.querySelectorAll('.fc')].forEach((s, i) => {
+      const final = s.textContent; let n = 3 + ((i * 7 + g) % 4);
+      const tick = () => {
+        if (n-- <= 0) { s.textContent = final; return; }
+        s.textContent = SORTE[(Math.random() * SORTE.length) | 0]; s.classList.remove('gira'); void s.offsetWidth; s.classList.add('gira');
+        setTimeout(tick, 52);
+      };
+      setTimeout(tick, i * 22 + g * 40);
+    }));
+  };
+  const virarNomes = raiz => { if (reduz) return; raiz.querySelectorAll('.lugar-nome').forEach((a, i) => {
+    const final = a.textContent; let n = 4; const t = () => { if (n-- <= 0) { a.textContent = final; return; } a.textContent = final.split('').map(c => c === ' ' ? ' ' : SORTE[(Math.random() * 26) | 0]).join(''); setTimeout(t, 60); };
+    setTimeout(t, i * 45); }); };
+
+  /* ---------- rotas ---------- */
+  const lerHash = () => {
+    const p = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
+    if (p[0] === 'busca') return { busca: p[1] || '', lugar: p[2] || null };
+    return { pais: p[0] || null, cidade: p[1] || null, tipo: p[2] || null, lugar: p[3] || null };
+  };
+  const rota = (...p) => '#/' + p.filter(Boolean).map(encodeURIComponent).join('/');
+  const rotaLugar = l => est.busca != null ? rota('busca', est.busca, l.id) : rota(l.pais, l.cidade, est.tipo === 'mapa' ? 'mapa' : l.tipo, l.id);
+
+  /* ---------- colunas ---------- */
+  const colPais = () => {
+    $('c-pais').innerHTML = LL.paisesComLugares().map(p => `<a class="linha-col" href="${rota(p.id)}" aria-current="${est.pais === p.id}" title="${esc(p.nome)}">
+      ${LL.bandeira(p.id)}<span class="nome">${esc(p.nome)}</span><span class="num">${LL.filtrar({ pais: p.id }).length}</span></a>`).join('');
+  };
+  const colCidade = () => {
+    const el = $('c-cidade');
+    if (!est.pais) { el.innerHTML = '<p class="col-vazia">Escolha um país</p>'; return; }
+    el.innerHTML = `<a class="voltar-mob" href="${rota()}">${icone('arrow-left')} Países</a>` + LL.cidadesDe(est.pais).map(c => { const g = LL.progresso({ cidade: c.id }); return `
+      <a class="linha-col" href="${rota(est.pais, c.id)}" aria-current="${est.cidade === c.id}"><span class="nome">${esc(c.nome)}${g.total && g.visitados === g.total ? '<span class="completa">COMPLETA</span>' : ''}
+        <span class="sub-col">${g.visitados} de ${g.total} visitados</span></span><span class="num">${g.total}</span></a>`; }).join('');
+  };
+  const colTipo = () => {
+    const el = $('c-tipo'), r = $('r-tipo');
+    if (!est.cidade) { el.innerHTML = '<p class="col-vazia">Escolha uma cidade</p>'; r.innerHTML = ''; return; }
+    const c = LL.cidade(est.cidade);
+    el.innerHTML = `<a class="voltar-mob" href="${rota(est.pais)}">${icone('arrow-left')} Cidades</a>` +
+      `<a class="linha-col" href="${rota(est.pais, est.cidade, 'mapa')}" aria-current="${est.tipo === 'mapa'}">${icone('map')}<span class="nome">Mapa da cidade</span></a>` +
+      LL.tiposEm({ cidade: est.cidade }).map(({ tipo: t, qtd }) => `<a class="linha-col" href="${rota(est.pais, est.cidade, t.id)}" aria-current="${est.tipo === t.id}" style="--cor-tipo:${LL.corTipo(t.id)}">
+        ${icone(t.icone)}<span class="nome">${esc(qtd === 1 ? t.nome : t.plural)}</span><span class="num">${qtd}</span></a>`).join('');
+    r.innerHTML = `<button type="button" class="ll-btn ll-btn-sec ll-btn-peq">${icone('plus')}<span>Novo em ${esc(c.nome)}</span></button>`;
+    r.querySelector('button').onclick = () => novo({ pais: c.pais, cidade: c.id, tipo: LL.tipo(est.tipo).campos.length ? est.tipo : '' });
+  };
+
+  const linha = l => {
+    const m = LL.distancia(l);
+    return `<tr class="lin" data-id="${l.id}" aria-current="${est.lugar === l.id}" style="--cor-tipo:${LL.corTipo(l.tipo)}">
+      <td class="c-tipo">${icone(LL.tipo(l.tipo).icone)}</td>
+      <td class="c-nome"><a class="lugar-nome" href="${rotaLugar(l)}">${esc(l.titulo)}</a><span class="lugar-res">${esc(LL.resumo(l) || LL.cidade(l.cidade)?.nome || '')}</span>${LL.seloSituacao(l) ? `<span class="lugar-situ">${LL.seloSituacao(l)}</span>` : ''}</td>
+      <td class="c-dist">${m != null ? `${placas(LL.fmtDistancia(m), 'dist ambar')}<span class="pe">${esc(LL.fmtPe(m))}</span>` : '<span class="pe">—</span>'}</td>
+      <td class="c-estado"><button type="button" class="lamp" data-fav aria-pressed="${l.favorito}" aria-label="Quero ir" title="Quero ir">${icone(l.favorito ? 'heart-filled' : 'heart')}</button>
+        <button type="button" class="lamp" data-vis aria-pressed="${l.visitado}" aria-label="Já fui" title="Já fui">${icone('check')}</button></td></tr>`;
+  };
+  const tabela = ls => `<table class="tabela"><thead><tr><th scope="col"><span class="sr">Tipo</span></th><th scope="col">Lugar</th><th scope="col" style="text-align:right">Distância</th><th scope="col" style="text-align:right">Quero ir · Já fui</th></tr></thead>
+    <tbody>${ls.map(linha).join('')}</tbody></table>`;
+  const ligarTabela = raiz => raiz.querySelectorAll('tr.lin').forEach(tr => {
+    const id = tr.dataset.id;
+    tr.onclick = e => { if (!e.target.closest('button,a')) location.hash = rotaLugar(LL.lugar(id)); };
+    tr.querySelector('[data-fav]').onclick = e => { const v = LL.alternarFavorito(id), b = e.currentTarget; b.setAttribute('aria-pressed', v); b.innerHTML = icone(v ? 'heart-filled' : 'heart'); b.classList.remove('ll-pulo'); void b.offsetWidth; b.classList.add('ll-pulo'); };
+    tr.querySelector('[data-vis]').onclick = e => { const v = LL.alternarVisitado(id), b = e.currentTarget; b.setAttribute('aria-pressed', v); b.classList.remove('ll-pulo'); void b.offsetWidth; b.classList.add('ll-pulo'); colCidade(); };
+  });
+
+  const colLugares = (animar) => {
+    const el = $('c-lugares');
+    if (mapa) { mapa.remove(); mapa = null; }
+    if (est.busca != null) {
+      const ls = LL.buscar(est.busca);
+      el.innerHTML = `<div class="quadro-cab">${placas('Busca: ' + est.busca.slice(0, 18), 'titulo-quadro')}<div class="quadro-meta">${ls.length} resultados</div></div>
+        <div class="quadro-corpo">${ls.length ? tabela(ls) : '<p class="quadro-vazio">Nada encontrado. Tente ramen, Quioto, templo…</p>'}</div>`;
+      ligarTabela(el); virar(el); return;
+    }
+    if (!est.tipo) {
+      const tot = LL.progresso({}), c = LL.cidade(est.cidade);
+      const alvo = c ? LL.progresso({ cidade: c.id }) : LL.pais(est.pais) ? LL.progresso({ pais: est.pais }) : tot;
+      const nome = c ? c.nome : LL.pais(est.pais)?.nome || 'Lista de Lugares';
+      el.innerHTML = `<div class="inicio-quadro">${placas(nome, 'titulo-quadro')}
+        <div class="inicio-numeros"><div><span>Lugares</span>${placas(String(alvo.total))}</div><div><span>Já visitados</span>${placas(String(alvo.visitados), 'ambar')}</div><div><span>Quero ir</span>${placas(String(alvo.favoritos), 'ambar')}</div></div>
+        <p class="ll-ajuda">${c ? 'Escolha um tipo ao lado — ou o mapa da cidade.' : est.pais ? 'Escolha uma cidade ao lado.' : 'Escolha um país ao lado para começar.'}</p>
+        <div class="inicio-acoes"><button type="button" class="ll-btn ll-btn-sec" data-tipos>${icone('tag')}<span>Tipos de local</span></button></div></div>`;
+      el.querySelector('[data-tipos]').onclick = () => LL.abrirTipos();
+      virar(el); return;
+    }
+    const c = LL.cidade(est.cidade);
+    if (est.tipo === 'mapa') {
+      el.innerHTML = `<div class="quadro-cab"><a class="voltar-mob" href="${rota(est.pais, est.cidade)}">${icone('arrow-left')} ${esc(c.nome)}</a>${placas('Mapa · ' + c.nome, 'titulo-quadro')}<div class="barra" id="b-origem"></div></div><div class="mapa-wrap"><div class="ll-mapa"></div></div>`;
+      el.querySelector('#b-origem').append(LL.ui.seletorOrigem({ filtro: { cidade: c.id } }));
+      mapa = LL.mapa(el.querySelector('.ll-mapa'), LL.filtrar({ cidade: c.id }), { aoClicar: id => location.hash = rota(est.pais, est.cidade, 'mapa', id) });
+      virar(el.querySelector('.quadro-cab')); return;
+    }
+    const t = LL.tipo(est.tipo);
+    if (ordem === 'perto' && !LL.origem) ordem = 'favoritos';
+    const ls = LL.ordenar(LL.filtrar({ cidade: c.id, tipo: t.id }), ordem);
+    el.innerHTML = `<div class="quadro-cab"><a class="voltar-mob" href="${rota(est.pais, est.cidade)}">${icone('arrow-left')} ${esc(c.nome)}</a>
+        ${placas(`${t.plural} · ${c.nome}`, 'titulo-quadro')}
+        <div class="quadro-meta"><span>${ls.length} ${ls.length === 1 ? 'lugar' : 'lugares'}</span><span>${ls.filter(l => l.visitado).length} visitados</span><span>${ls.filter(l => l.favorito).length} quero ir</span></div>
+        <div class="barra"><div id="b-origem"></div><div class="ordem" role="group" aria-label="Ordenar">${[['perto', 'Mais perto'], ['favoritos', 'Quero ir'], ['nome', 'A–Z']].map(([k, n]) => `<button type="button" class="ll-chip" data-ordem="${k}" aria-pressed="${ordem === k}">${n}</button>`).join('')}</div></div></div>
+      <div class="quadro-corpo">${ls.length ? tabela(ls) : '<p class="quadro-vazio">Nenhum lugar aqui ainda</p>'}</div>`;
+    el.querySelector('#b-origem').append(LL.ui.seletorOrigem({ filtro: { cidade: c.id } }));
+    el.querySelectorAll('[data-ordem]').forEach(b => b.onclick = () => {
+      if (b.dataset.ordem === 'perto' && !LL.origem) { LL.toast('Escolha de onde medir: sua localização ou um lugar.', { icone: 'current-location' }); el.querySelector('.ll-origem button, .ll-origem select')?.focus(); return; }
+      ordem = b.dataset.ordem; colLugares(true);
+    });
+    ligarTabela(el);
+    virar(el.querySelector('.quadro-cab'));
+    if (animar) { virarNomes(el); virar(el.querySelector('.quadro-corpo')); }
+  };
+
+  const colFicha = () => {
+    const el = $('c-ficha'), l = LL.lugar(est.lugar);
+    el.hidden = !l; colunas.classList.toggle('com-ficha', !!l);
+    if (!l) { el.innerHTML = ''; return; }
+    const voltar = est.busca != null ? rota('busca', est.busca) : rota(l.pais, l.cidade, est.tipo);
+    el.innerHTML = `<div class="col-cab"><a class="voltar-mob" href="${voltar}">${icone('arrow-left')} Voltar</a><h2>Ficha</h2>
+      <a class="ll-icone-btn" href="${voltar}" aria-label="Fechar ficha">${icone('x')}</a></div><div class="col-corpo"></div>`;
+    el.querySelector('.col-corpo').append(LL.ui.ficha(l, { aoEditar: id => LL.abrirEdicao(id), aposApagar: () => { location.hash = voltar; } }));
+  };
+
+  const ativa = () => {
+    document.querySelectorAll('.col').forEach(c => c.classList.remove('ativa'));
+    const alvo = est.lugar ? 'c-ficha' : (est.tipo || est.busca != null) ? 'c-lugares' : est.cidade ? 'c-tipo' : est.pais ? 'c-cidade' : 'c-pais';
+    const el = $(alvo); (alvo === 'c-ficha' || alvo === 'c-lugares' ? el : el.closest('.col')).classList.add('ativa');
+  };
+
+  const render = (animar) => {
+    if (est.busca == null && document.activeElement !== busca) busca.value = '';
+    colPais(); colCidade(); colTipo(); colLugares(animar); colFicha(); ativa();
+    if (celular()) colunas.scrollTop = 0;
+  };
+  const trocar = () => { const antes = est; est = lerHash(); render(antes.tipo !== est.tipo || antes.cidade !== est.cidade); };
+  addEventListener('hashchange', trocar);
+
+  /* ---------- ações ---------- */
+  const flashLinha = id => { const tr = document.querySelector(`tr.lin[data-id="${id}"]`); if (tr) { tr.animate([{ background: 'rgba(255,180,0,.45)' }, { background: 'transparent' }], { duration: 1200, easing: 'ease-out' }); virarNomes(tr); } };
+  const novo = ctx => LL.abrirNovo(ctx || { pais: est.pais, cidade: est.cidade, tipo: est.tipo !== 'mapa' ? est.tipo : '' }, l => { location.hash = rota(l.pais, l.cidade, l.tipo, l.id); setTimeout(() => flashLinha(l.id), 80); LL.toast('Lugar salvo no painel.', { icone: 'check' }); });
+  $('b-novo').onclick = () => novo();
+  LL.config.guia = 'guia-painel.html';
+  $('b-guia').onclick = () => LL.abrirGerarGuia({ pais: est.pais, cidade: est.cidade });
+  $('b-importar').onclick = () => LL.abrirImportacao(ids => { const l = LL.lugar(ids[0]); if (l) location.hash = rota(l.pais, l.cidade, l.tipo); setTimeout(() => ids.forEach(flashLinha), 120); });
+  let tB;
+  busca.addEventListener('input', () => { clearTimeout(tB); tB = setTimeout(() => {
+    const q = busca.value.trim();
+    if (!q) { if (est.busca != null) location.hash = rota(); return; }
+    if (est.busca != null) { history.replaceState(null, '', rota('busca', q)); est = lerHash(); colLugares(); colFicha(); ativa(); } else location.hash = rota('busca', q);
+  }, 220); });
+
+  LL.aoMudar(ev => {
+    if (['salvo', 'apagado', 'restaurado', 'importado', 'tipos'].includes(ev.acao)) render();
+    if (ev.acao === 'origem') { if (LL.origem && est.tipo && est.tipo !== 'mapa') ordem = 'perto'; colLugares(true); colFicha(); }
+    if (ev.acao === 'visitado' || ev.acao === 'favorito') {
+      const tr = document.querySelector(`tr.lin[data-id="${ev.id}"]`), l = LL.lugar(ev.id);
+      if (tr) { const b = tr.querySelector(ev.acao === 'favorito' ? '[data-fav]' : '[data-vis]'); b.setAttribute('aria-pressed', ev.valor); if (ev.acao === 'favorito') b.innerHTML = icone(ev.valor ? 'heart-filled' : 'heart'); }
+      if (ev.acao === 'visitado') { colCidade(); if (ev.cidadeCompleta) LL.toast(`${LL.cidade(l.cidade).nome}: COMPLETA! Todos os lugares visitados.`, { icone: 'trophy' }); }
+    }
+  });
+  addEventListener('resize', () => ativa());
+  trocar();
+})();
+</script>
+</body>
+</html>

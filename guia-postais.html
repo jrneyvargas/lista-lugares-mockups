@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1e40af">
+<title>Guia de viagem — Postais</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Kalam:wght@400&family=Rethink+Sans:wght@400;600;700;800&display=swap" data-embutir="fonte">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css" data-so-demo>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" data-embutir>
+<link rel="stylesheet" href="nucleo.css" data-embutir>
+<link rel="stylesheet" href="guia.css" data-embutir>
+<style>
+:root {
+  --fundo: #eef1f7; --superficie: #fff; --superficie-2: #e6eaf3; --painel-fundo: #fff;
+  --tinta: #14213d; --tinta-2: #4b5876; --linha: #d2d8e5; --placeholder: #66718b;
+  --destaque: #d7263d; --destaque-tinta: #fff; --azul: #1e40af; --azul-escuro: #12286f; --dist-tinta: var(--azul);
+  --ok: #1f7a45; --perigo: #c92a2a; --fav: #d7263d; --foco: #ffd43b;
+  --raio: 10px; --raio-chip: 999px; --raio-btn: 999px; --raio-input: 10px;
+  --fonte: 'Rethink Sans', system-ui, sans-serif; --fonte-titulo: 'Bowlby One', 'Rethink Sans', sans-serif;
+  --chip-ativo: var(--azul); --chip-ativo-tinta: #fff; --toast-fundo: var(--azul-escuro); --toast-tinta: #fff; --toast-acao: #ffd43b;
+  --selecao: #ffd43b; --selecao-tinta: var(--tinta); --topo-fundo: var(--azul); --topo-tinta: #fff;
+  --tipo-atrativo: #d7263d; --tipo-restaurante: #dd6b20; --tipo-hotel: #1e40af; --tipo-cafe: #8a5a3b;
+  --tipo-compras: #c2338a; --tipo-bar: #6741d9; --tipo-transporte: #0b7285; --tipo-experiencia: #2b8a3e;
+  --aereo: repeating-linear-gradient(-45deg, #d7263d 0 12px, #fff 12px 17px, #1e40af 17px 29px, #fff 29px 34px);
+}
+.g-topo::after { content: ''; display: block; height: 7px; background: var(--aereo); }
+.g-marca { font-family: var(--fonte-titulo); font-weight: 400; letter-spacing: .01em; }
+.g-busca input { border-color: transparent; }
+.letras { margin: 0; font-family: var(--fonte-titulo); text-transform: uppercase; line-height: .9; font-size: clamp(2.8rem, 15vw, 5rem);
+  background: var(--foto, none) center 40% / cover, var(--azul); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(2px 2px 0.5px #fff) drop-shadow(3px 4px 1px var(--azul-escuro)); padding: .06em .04em .1em 0; text-wrap: balance; }
+.g-h1 { font-weight: 400; font-size: clamp(1.8rem, 8vw, 2.6rem); }
+.g-cidade, .g-item, .g-atalho, .g-ferr { border: 0; border-radius: 6px; box-shadow: 0 1px 2px rgba(20,33,61,.12), 0 8px 18px -14px rgba(20,33,61,.45); }
+.g-cidade img { border: 4px solid #fff; box-shadow: 0 2px 6px rgba(20,33,61,.25); border-radius: 2px; transform: rotate(-2deg); }
+.g-cidade-txt b { font-family: var(--fonte-titulo); font-weight: 400; font-size: 1.2rem; }
+.g-cidade.completa::after, .g-item.visitado::after { content: ''; position: absolute; pointer-events: none; mix-blend-mode: multiply; opacity: .8; transform: rotate(-12deg);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 110' fill='none' stroke='%23b4232f'%3E%3Ccircle cx='55' cy='55' r='48' stroke-width='3'/%3E%3Ccircle cx='55' cy='55' r='33' stroke-width='1.6'/%3E%3Ctext x='55' y='61' text-anchor='middle' font-family='sans-serif' font-weight='800' font-size='15' fill='%23b4232f' stroke='none'%3EJ%C3%81 FUI%3C/text%3E%3Cpath d='M110 32 q12 -7 24 0 t24 0 t24 0' stroke-width='3'/%3E%3Cpath d='M110 47 q12 -7 24 0 t24 0 t24 0' stroke-width='3'/%3E%3Cpath d='M110 62 q12 -7 24 0 t24 0 t24 0' stroke-width='3'/%3E%3Cpath d='M110 77 q12 -7 24 0 t24 0 t24 0' stroke-width='3'/%3E%3C/svg%3E") center / contain no-repeat; }
+.g-item.visitado::after { width: 60px; height: 34px; right: 52px; bottom: 2px; opacity: .7; }
+.g-cidade { position: relative; }
+.g-cidade.completa::after { width: 110px; height: 60px; right: 30px; top: 6px; }
+.g-item.visitado .g-bot[data-vis] { animation: none; }
+.g-tipos { gap: 12px; }
+.g-tipos li { padding: 5px; background: radial-gradient(circle, transparent 3px, var(--superficie) 3.5px) -5px -5px / 10px 10px; filter: drop-shadow(0 4px 8px rgba(20,33,61,.18)); }
+.g-tipo { border-radius: 0; }
+.g-tipo::after { content: ''; position: absolute; inset: 5px; border: 1.5px solid rgba(255,255,255,.5); pointer-events: none; }
+.g-tipo b, .g-tipo-num { font-family: var(--fonte-titulo); font-weight: 400; }
+.g-ficha { position: relative; background: #fff; border-radius: 6px; padding: 18px 14px; box-shadow: 0 1px 2px rgba(20,33,61,.12), 0 20px 40px -24px rgba(20,33,61,.45); }
+.g-ficha::before { content: ''; position: absolute; inset: 0 0 auto; height: 6px; border-radius: 6px 6px 0 0; background: var(--aereo); }
+.g-ficha .ll-ficha-fotos img { border: 6px solid #fff; border-radius: 2px; box-shadow: 0 4px 14px -6px rgba(20,33,61,.5); }
+.g-ficha .ll-ficha-titulo { font-weight: 400; }
+.g-ficha .ll-dicas { background: #fff repeating-linear-gradient(transparent 0 27px, #c9d6f2 27px 28px); border: 1px solid var(--linha); }
+.g-ficha .ll-dicas p { font-family: 'Kalam', cursive; font-size: 1.12rem; line-height: 28px; color: var(--azul-escuro); }
+.g-abas [aria-selected="true"] { color: var(--azul); }
+</style>
+</head>
+<body class="guia">
+<div id="guia"></div>
+<script id="guia-dados">window.GUIA_INFO = null;</script>
+<script src="dados-japao.js" data-so-demo></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" data-embutir></script>
+<script src="icones-svg.js" data-embutir></script>
+<script src="nucleo.js" data-embutir></script>
+<script>
+window.GUIA_CFG = {
+  layout: 'niveis',
+  cabecalho: ({ texto, foto, nivel }) => (nivel === 'inicio' || nivel === 'cidade')
+    ? `<h1 class="letras" ${foto ? `style="--foto:url('${foto}')"` : ''}>${LL.esc(texto)}</h1>`
+    : `<h1 class="g-h1">${LL.esc(texto)}</h1>`
+};
+</script>
+<script src="guia.js" data-embutir></script>
+</body>
+</html>

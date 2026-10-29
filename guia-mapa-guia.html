@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f1e4">
+<title>Guia de viagem — Mapa-guia</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;700;800&display=swap" data-embutir="fonte">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css" data-so-demo>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" data-embutir>
+<link rel="stylesheet" href="nucleo.css" data-embutir>
+<link rel="stylesheet" href="guia.css" data-embutir>
+<style>
+:root {
+  --agua: #f5f1e4; --terra: #8ed462; --sol: #f5e211; --coral: #ff705d; --lago: #2ba0ff; --lilas: #ebc1ff;
+  --fundo: var(--agua); --superficie: #fffdf7; --superficie-2: #ede7d4; --painel-fundo: #fffdf7;
+  --tinta: #2c2e2a; --tinta-2: #5a5d55; --linha: #d8d0b8; --placeholder: #6d7068;
+  --destaque: #2c2e2a; --destaque-tinta: #fffdf7; --foco: var(--lago); --dist-tinta: #1b6fc0;
+  --ok: #2f8a3a; --perigo: #d63a26; --fav: #e8412c; --aviso-fundo: #fff6b0; --aviso-tinta: #4d4300;
+  --raio: 22px; --raio-chip: 999px; --raio-btn: 999px; --raio-input: 16px;
+  --fonte: 'Schibsted Grotesk', system-ui, sans-serif; --fonte-titulo: 'Schibsted Grotesk', system-ui, sans-serif;
+  --chip-ativo: var(--sol); --chip-ativo-tinta: var(--tinta); --toast-fundo: var(--tinta); --toast-tinta: var(--agua); --toast-acao: var(--sol);
+  --selecao: var(--sol); --selecao-tinta: var(--tinta); --dicas-fundo: #fff6b0; --topo-fundo: transparent; --tipo-tinta: var(--tinta);
+  --tipo-atrativo: #ff705d; --tipo-restaurante: #ff9f43; --tipo-hotel: #2ba0ff; --tipo-cafe: #c99466;
+  --tipo-compras: #f08ad6; --tipo-bar: #b39bff; --tipo-transporte: #2ec4b6; --tipo-experiencia: #8ed462;
+  --mola: cubic-bezier(.34, 1.56, .64, 1);
+}
+html, body { overflow-x: clip; }
+.terra-caixa { position: absolute; z-index: -1; top: 0; left: 0; right: 0; height: 330px; overflow: hidden; pointer-events: none; }
+.terra { position: absolute; top: -40px; right: -190px; width: 520px; height: 330px; }
+.terra path { transition: d .55s var(--mola), fill .45s ease; }
+.g-topo { position: relative; }
+.g-marca { font-size: 1.05rem; letter-spacing: -.02em; }
+.g-h1 { font-weight: 800; letter-spacing: -.045em; font-size: clamp(2.4rem, 11vw, 3.6rem); line-height: .95; max-width: 11ch; }
+.g-filtros { top: 0; }
+.capsula { --c: var(--sol); position: relative; flex: none; display: inline-flex; align-items: center; gap: .4em; min-height: 42px; padding: 0 46px 0 14px; border-radius: 999px;
+  border: 1.5px solid var(--tinta); background: var(--superficie); color: var(--tinta); font-weight: 700; font-size: .92rem; white-space: nowrap; transition: padding .4s var(--mola), background-color .25s; }
+.capsula .bolha { position: absolute; top: 4px; left: calc(100% - 36px); display: grid; place-items: center; min-width: 32px; height: 32px; padding: 0 6px; border-radius: 999px;
+  background: var(--c); color: var(--tinta); font-size: .8rem; font-weight: 800; transition: left .4s var(--mola), background-color .25s; }
+.capsula[aria-pressed="true"] { background: var(--c); padding: 0 14px 0 46px; }
+.capsula[aria-pressed="true"] .bolha { left: 4px; background: var(--tinta); color: var(--c); }
+.f-cidade .capsula { --c: var(--coral); }
+.g-item, .g-cidade, .g-ferr, .g-busca-c input { border-color: var(--tinta); }
+.g-item-foto { clip-path: url(#lobo-foto); border-radius: 0; }
+.g-item-dist { background: var(--lago); color: #fff; padding: .15em .7em; border-radius: 99px; align-self: flex-start; }
+.g-bot { border-color: var(--tinta); color: var(--tinta); }
+.g-bot[data-fav][aria-pressed="true"] { background: var(--coral); color: var(--tinta); }
+.g-bot[data-vis][aria-pressed="true"] { background: var(--terra); color: var(--tinta); border-color: var(--tinta); }
+.ll-chip { border-color: var(--tinta); }
+.ll-tipo-chip { color: var(--tinta); background: var(--cor-tipo); border: 1.5px solid var(--tinta); }
+.ll-ficha-fotos img { clip-path: url(#lobo-foto); border-radius: 0; }
+.ll-ficha-titulo { font-weight: 800; letter-spacing: -.04em; }
+.ll-destaques { border-radius: 22px; border: 1.5px solid var(--tinta); background: var(--tinta); }
+.ll-destaque { background: color-mix(in srgb, var(--cor-tipo) 22%, var(--superficie)); }
+.ll-destaque dt, .ll-faixa { color: var(--tinta); }
+.ll-acao { border-color: var(--tinta); }
+.ll-acao-fav[aria-pressed="true"] { background: var(--coral); color: var(--tinta); border-color: var(--tinta); }
+.ll-acao-vis[aria-pressed="true"] { background: var(--terra); color: var(--tinta); border-color: var(--tinta); }
+.ll-pino { color: var(--tinta); border-color: var(--tinta); }
+.ll-painel { border-radius: 26px 26px 0 0; }
+</style>
+</head>
+<body class="guia">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <clipPath id="lobo-foto" clipPathUnits="objectBoundingBox"><path d="M0.06,0.18 C0.12,0.02 0.36,0.04 0.55,0.03 C0.78,0.02 0.97,0.08 0.98,0.3 C0.99,0.5 0.95,0.62 0.97,0.8 C0.99,0.97 0.8,1 0.6,0.97 C0.42,0.94 0.25,1 0.1,0.95 C-0.02,0.9 0.02,0.7 0.03,0.52 C0.04,0.38 0.01,0.3 0.06,0.18 Z"/></clipPath>
+</defs></svg>
+<div class="terra-caixa" aria-hidden="true"><svg class="terra" viewBox="0 0 520 330" preserveAspectRatio="none"><path id="terra-p" fill="#8ed462"/></svg></div>
+<div id="guia"></div>
+<script id="guia-dados">window.GUIA_INFO = null;</script>
+<script src="dados-japao.js" data-so-demo></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" data-embutir></script>
+<script src="icones-svg.js" data-embutir></script>
+<script src="nucleo.js" data-embutir></script>
+<script>
+(function () {
+  const semente = s => { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return () => ((h = Math.imul(h ^ (h >>> 15), 2246822507) >>> 0) / 4294967296); };
+  const lobo = (chave, w, hgt, n, v) => {
+    const r = semente(chave), pts = [];
+    for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2, k = 1 - v / 2 + r() * v; pts.push([w * .55 + Math.cos(a) * w * .44 * k, hgt * .5 + Math.sin(a) * hgt * .44 * k]); }
+    let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+    for (let i = 0; i < n; i++) { const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+      d += ` C${(p1[0] + (p2[0] - p0[0]) / 6).toFixed(1)},${(p1[1] + (p2[1] - p0[1]) / 6).toFixed(1)} ${(p2[0] - (p3[0] - p1[0]) / 6).toFixed(1)},${(p2[1] - (p3[1] - p1[1]) / 6).toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`; }
+    return d + 'Z';
+  };
+  window.GUIA_CFG = {
+    layout: 'filtros',
+    cabecalho: ({ texto }) => `<h1 class="g-h1">${LL.esc(texto)}</h1>`,
+    depois: (raiz, est) => {
+      const p = document.getElementById('terra-p');
+      p.style.d = `path("${lobo([est.cidade, est.tipo, est.busca].join('|') || 'inicio', 520, 330, 8, .4)}")`;
+      p.style.fill = est.tipo ? getComputedStyle(document.documentElement).getPropertyValue('--tipo-' + est.tipo).trim() || LL.tipo(est.tipo).cor : '#8ed462';
+    }
+  };
+})();
+</script>
+<script src="guia.js" data-embutir></script>
+</body>
+</html>

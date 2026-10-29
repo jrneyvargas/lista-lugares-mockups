@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lista de Lugares — A · Postais</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Kalam:wght@400;700&family=Rethink+Sans:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="nucleo.css">
+<style>
+:root {
+  --fundo: #eef1f7; --superficie: #fff; --superficie-2: #e6eaf3; --painel-fundo: #fff;
+  --tinta: #14213d; --tinta-2: #4b5876; --linha: #d2d8e5; --placeholder: #66718b;
+  --destaque: #d7263d; --destaque-hover: #b71d31; --destaque-tinta: #fff; --anel: rgba(215,38,61,.18); --anel-forte: rgba(30,64,175,.35);
+  --azul: #1e40af; --azul-escuro: #12286f; --tinta-carimbo: #b4232f;
+  --ok: #1f7a45; --perigo: #c92a2a; --fav: #d7263d; --aviso: #d99a00;
+  --raio: 10px; --raio-chip: 999px; --raio-btn: 999px; --raio-input: 10px;
+  --fonte: 'Rethink Sans', system-ui, sans-serif; --fonte-titulo: 'Bowlby One', 'Rethink Sans', sans-serif; --fonte-mao: 'Kalam', cursive;
+  --sombra: 0 8px 22px -6px rgba(20,33,61,.28);
+  --chip-ativo: var(--azul); --chip-ativo-tinta: #fff; --toast-fundo: var(--azul-escuro); --toast-tinta: #fff; --toast-acao: #ffd43b;
+  --selecao: #ffd43b; --selecao-tinta: var(--tinta);
+  --tipo-atrativo: #d7263d; --tipo-restaurante: #dd6b20; --tipo-hotel: #1e40af; --tipo-cafe: #8a5a3b;
+  --tipo-compras: #c2338a; --tipo-bar: #6741d9; --tipo-transporte: #0b7285; --tipo-experiencia: #2b8a3e;
+}
+body { min-height: 100dvh; }
+/* ---------- topo: envelope de correio aéreo ---------- */
+.topo { position: sticky; top: 0; z-index: 50; background: var(--azul); color: #fff; }
+.topo-in { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; gap: 16px; padding: 10px 24px; }
+.marca { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font-family: var(--fonte-titulo); font-size: 1.15rem; letter-spacing: .01em; white-space: nowrap; }
+.marca-selo { display: grid; place-items: center; width: 34px; height: 40px; padding: 4px; color: var(--destaque); font-size: .8rem;
+  background: radial-gradient(circle, transparent 2.4px, #fff 2.9px) -4px -4px / 8px 8px; }
+.marca-selo span { display: grid; place-items: center; width: 100%; height: 100%; background: #fff; }
+.busca { flex: 1; max-width: 460px; margin-left: auto; position: relative; }
+.busca .ti { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--tinta-2); }
+.busca input { width: 100%; min-height: 42px; border-radius: 999px; border: 0; padding: .5em 1em .5em 2.6em; background: #fff; color: var(--tinta); }
+.busca input:focus { outline: 3px solid #ffd43b; outline-offset: 1px; }
+.topo-acoes { display: flex; gap: 8px; }
+.topo .ll-btn-sec { background: transparent; color: #fff; border-color: rgba(255,255,255,.55); }
+.topo .ll-btn-sec:hover { background: rgba(255,255,255,.12); border-color: #fff; }
+.topo .ll-btn-pri { border-color: #fff; }
+.faixa-aerea { height: 9px; background: repeating-linear-gradient(-45deg, var(--destaque) 0 13px, #fff 13px 19px, var(--azul) 19px 32px, #fff 32px 38px); }
+.trilha { max-width: 1240px; margin: 0 auto; padding: 14px 24px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: .9rem; color: var(--tinta-2); }
+.trilha a { color: var(--tinta-2); text-decoration: none; font-weight: 600; padding: 4px 6px; border-radius: 6px; display: inline-flex; align-items: center; gap: .35em; }
+.trilha a:hover { background: var(--superficie-2); color: var(--tinta); }
+.trilha [aria-current] { color: var(--tinta); font-weight: 750; padding: 4px 6px; }
+.trilha .ti-chevron-right { font-size: .9em; opacity: .6; }
+main { max-width: 1240px; margin: 0 auto; padding: 12px 24px 96px; view-transition-name: nivel; }
+::view-transition-old(nivel) { animation: sai .18s ease-in both; }
+::view-transition-new(nivel) { animation: entra .32s cubic-bezier(.2,.9,.2,1) both; }
+@keyframes sai { to { opacity: 0; transform: translateX(-24px); } }
+@keyframes entra { from { opacity: 0; transform: translateX(32px); } }
+.voltando::view-transition-new(nivel) { animation-name: entra-volta; }
+@keyframes entra-volta { from { opacity: 0; transform: translateX(-32px); } }
+
+/* ---------- letras grandes de cartão-postal ---------- */
+.letras { font-family: var(--fonte-titulo); text-transform: uppercase; line-height: .9; letter-spacing: -.01em; margin: 0;
+  font-size: clamp(3rem, 11vw, 7.2rem); background: var(--foto) center 40% / cover, var(--azul); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(2px 2px 0.5px #fff) drop-shadow(4px 5px 1px var(--azul-escuro)); padding: .06em .04em .1em 0; text-wrap: balance; }
+.cab-postal { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 12px 24px; padding: 18px 0 26px; }
+.cab-postal .meta { margin: 8px 0 0; color: var(--tinta-2); font-weight: 600; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+.cab-postal .meta b { color: var(--tinta); }
+h1.titulo-nivel { font-family: var(--fonte-titulo); font-size: clamp(2rem, 5vw, 3rem); line-height: 1; margin: 18px 0 6px; }
+.sub { color: var(--tinta-2); margin: 0 0 24px; font-weight: 600; }
+
+/* ---------- cartões ---------- */
+.postal { position: relative; display: flex; flex-direction: column; background: var(--superficie); border-radius: 6px; text-decoration: none; color: inherit;
+  box-shadow: 0 1px 2px rgba(20,33,61,.12), 0 10px 24px -14px rgba(20,33,61,.4); transition: transform .25s cubic-bezier(.2,.9,.25,1.2), box-shadow .25s; overflow: hidden; }
+.postal:hover { transform: translateY(-4px) rotate(-.6deg); box-shadow: 0 2px 4px rgba(20,33,61,.12), 0 22px 34px -16px rgba(20,33,61,.5); }
+.postal:nth-child(even):hover { transform: translateY(-4px) rotate(.6deg); }
+.postal-foto { aspect-ratio: 3 / 2; object-fit: cover; width: 100%; border-bottom: 6px solid #fff; }
+.postal-sem-foto { aspect-ratio: 3 / 2; display: grid; place-items: center; background: var(--superficie-2); color: var(--tinta-2); font-size: 2.5rem; }
+.postal-txt { padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+.postal-nome { font-family: var(--fonte-titulo); font-size: 1.45rem; line-height: 1.05; margin: 0; }
+.postal-info { color: var(--tinta-2); font-size: .9rem; font-weight: 600; margin: 0; display: flex; gap: .45em; align-items: center; flex-wrap: wrap; }
+.grade-postais { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 22px; }
+.grade-paises { grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); }
+.postal-pais .letras { font-size: clamp(2.6rem, 6vw, 3.6rem); }
+.progresso { height: 6px; border-radius: 99px; background: var(--superficie-2); overflow: hidden; }
+.progresso span { display: block; height: 100%; width: var(--p); background: var(--ok); border-radius: 99px; transition: width .6s cubic-bezier(.2,.9,.2,1); }
+
+/* selo (tipo) com picote */
+.selo { --c: var(--cor-tipo); display: block; padding: 5px; background: radial-gradient(circle, transparent 3px, var(--superficie) 3.5px) -5px -5px / 10px 10px;
+  filter: drop-shadow(0 4px 8px rgba(20,33,61,.18)); text-decoration: none; color: #fff; transition: transform .25s cubic-bezier(.2,.9,.25,1.3); }
+.selo:hover { transform: translateY(-4px) rotate(-2deg); }
+.selo:nth-child(3n+2):hover { transform: translateY(-4px) rotate(2deg); }
+.selo-in { display: flex; flex-direction: column; justify-content: space-between; gap: 18px; min-height: 168px; padding: 16px; background: var(--c); position: relative; overflow: hidden; }
+.selo-in::after { content: ''; position: absolute; inset: 6px; border: 1.5px solid rgba(255,255,255,.5); pointer-events: none; }
+.selo-ic { font-size: 2.6rem; line-height: 1; }
+.selo-nome { font-family: var(--fonte-titulo); font-size: 1.35rem; line-height: 1; margin: 0; }
+.selo-num { position: absolute; top: 12px; right: 14px; font-family: var(--fonte-titulo); font-size: 2rem; line-height: 1; opacity: .9; }
+.selo-info { font-size: .82rem; font-weight: 700; opacity: .92; margin: 4px 0 0; }
+.grade-selos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr)); gap: 18px; }
+.selo-novo .selo-in { background: var(--superficie); color: var(--tinta-2); border: 2px dashed var(--linha); }
+.selo-novo .selo-in::after { display: none; }
+
+/* carimbo postal */
+.carimbo { position: absolute; pointer-events: none; color: var(--tinta-carimbo); mix-blend-mode: multiply; opacity: .85; }
+.carimbo svg { display: block; width: 100%; height: auto; }
+.carimbando { animation: carimbar .55s cubic-bezier(.3,1.4,.5,1) both; }
+@keyframes carimbar { 0% { opacity: 0; transform: scale(1.8) rotate(var(--r, -14deg)); } 60% { opacity: .95; transform: scale(.94) rotate(var(--r, -14deg)); } 100% { opacity: .85; transform: scale(1) rotate(var(--r, -14deg)); } }
+.postal .carimbo { width: 120px; right: 10px; top: 10px; --r: -12deg; transform: rotate(var(--r)); }
+.carimbo-tela { position: fixed; z-index: 3000; left: 50%; top: 42%; width: 240px; margin-left: -120px; }
+
+/* ---------- abas e barra ---------- */
+.abas { display: inline-flex; gap: 4px; padding: 4px; background: var(--superficie-2); border-radius: 999px; margin-bottom: 20px; }
+.abas button { border: 0; background: transparent; min-height: 38px; padding: 0 16px; border-radius: 999px; font-weight: 700; color: var(--tinta-2); display: inline-flex; align-items: center; gap: .4em; }
+.abas button[aria-selected="true"] { background: var(--superficie); color: var(--tinta); box-shadow: 0 1px 3px rgba(20,33,61,.15); }
+.ll-mapa.mapa-cidade { height: min(64vh, 600px); border-radius: 12px; border: 6px solid #fff; box-shadow: var(--sombra); }
+.barra-lista { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; margin-bottom: 16px; background: var(--superficie); border-radius: 12px; border: 1px solid var(--linha); }
+.ordem { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.ordem .ll-chip { min-height: 34px; font-size: .85rem; }
+
+/* ---------- lista de lugares ---------- */
+.cab-lista { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 14px 0 18px; }
+.cab-lista h1 { font-family: var(--fonte-titulo); font-size: clamp(1.9rem, 5vw, 2.8rem); line-height: 1; margin: 0; flex-basis: 100%; }
+.cab-lista .ll-tipo-chip { font-size: .9rem; }
+.lista-postais { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.linha-postal { position: relative; display: grid; grid-template-columns: 128px 1fr auto; align-items: center; gap: 18px; padding: 10px 12px 10px 10px; background: var(--superficie);
+  border-radius: 8px; box-shadow: 0 1px 2px rgba(20,33,61,.1), 0 8px 18px -14px rgba(20,33,61,.45); transition: transform .2s cubic-bezier(.2,.9,.25,1.2), box-shadow .2s; }
+.linha-postal:hover { transform: translateX(4px); box-shadow: 0 2px 4px rgba(20,33,61,.12), 0 14px 26px -16px rgba(20,33,61,.5); }
+.linha-postal img, .linha-postal .mini-sem { width: 128px; height: 92px; object-fit: cover; border-radius: 4px; }
+.mini-sem { display: grid; place-items: center; background: color-mix(in srgb, var(--cor-tipo) 15%, var(--superficie-2)); color: var(--cor-tipo); font-size: 2rem; }
+.linha-txt { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.linha-txt a { color: inherit; text-decoration: none; }
+.linha-txt a::after { content: ''; position: absolute; inset: 0; }
+.linha-nome { margin: 0; font-size: 1.15rem; font-weight: 800; line-height: 1.2; }
+.linha-resumo { margin: 0; color: var(--tinta-2); font-size: .9rem; font-weight: 550; }
+.linha-dist { margin: 0; font-size: .9rem; font-weight: 750; display: flex; align-items: center; gap: .35em; color: var(--azul); }
+.linha-acoes { display: flex; gap: 2px; position: relative; z-index: 1; }
+.linha-acoes .ll-icone-btn { width: 44px; height: 44px; font-size: 1.15rem; }
+.linha-acoes [aria-pressed="true"][data-fav] { color: var(--fav); }
+.linha-acoes [aria-pressed="true"][data-vis] { color: var(--ok); }
+.linha-postal .carimbo { width: 104px; right: 118px; top: calc(50% - 30px); --r: -12deg; transform: rotate(var(--r)); }
+.lista-vazia { padding: 48px 16px; text-align: center; color: var(--tinta-2); background: var(--superficie); border-radius: 12px; border: 2px dashed var(--linha); }
+.mais { margin-top: 18px; }
+
+/* ---------- ficha ---------- */
+.ficha-wrap { position: relative; background: var(--superficie); border-radius: 8px; padding: 22px; margin-top: 12px;
+  box-shadow: 0 1px 2px rgba(20,33,61,.12), 0 24px 44px -24px rgba(20,33,61,.45); }
+.ficha-wrap::before { content: ''; position: absolute; inset: 0 0 auto; height: 7px; border-radius: 8px 8px 0 0;
+  background: repeating-linear-gradient(-45deg, var(--destaque) 0 13px, #fff 13px 19px, var(--azul) 19px 32px, #fff 32px 38px); }
+.ficha-wrap .ll-ficha { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); column-gap: 32px; row-gap: 18px; align-items: start; padding-bottom: 0; }
+.ficha-wrap .ll-ficha > * { grid-column: 2; }
+.ficha-wrap .ll-ficha-fotos { grid-column: 1; grid-row: 1 / span 8; position: sticky; top: 90px; flex-direction: column; overflow: visible; }
+.ficha-wrap .ll-ficha-fotos img { height: auto; aspect-ratio: 4 / 3; flex-basis: auto !important; border-radius: 4px; border: 8px solid #fff; box-shadow: 0 6px 18px -8px rgba(20,33,61,.5); }
+.ficha-wrap .ll-ficha-fotos img + img { width: 62%; margin: -42px 0 0 auto; transform: rotate(3deg); }
+.ficha-wrap .ll-ficha:not(:has(.ll-ficha-fotos)) { grid-template-columns: minmax(0, 760px); }
+.ficha-wrap .ll-ficha:not(:has(.ll-ficha-fotos)) > * { grid-column: 1; }
+.ficha-wrap .ll-ficha-titulo { font-size: clamp(2rem, 4vw, 2.8rem); padding-right: 100px; }
+.ficha-selo { position: absolute; top: 26px; right: 22px; width: 78px; z-index: 2; }
+.ficha-selo .selo-in { min-height: 92px; gap: 4px; padding: 10px; align-items: center; justify-content: center; }
+.ficha-selo .selo-ic { font-size: 2rem; }
+.ficha-wrap > .carimbo { width: 170px; top: 64px; right: 64px; --r: -14deg; transform: rotate(var(--r)); z-index: 3; }
+.ficha-wrap .ll-dicas { background: #fff repeating-linear-gradient(transparent 0 27px, #c9d6f2 27px 28px); border: 1px solid var(--linha); padding: 12px 16px 10px; }
+.ficha-wrap .ll-dicas p { font-family: var(--fonte-mao); font-size: 1.15rem; line-height: 28px; color: var(--azul-escuro); }
+.ficha-wrap .ll-destaques { border-radius: 6px; }
+.voltar { display: inline-flex; align-items: center; gap: .4em; font-weight: 700; color: var(--tinta-2); text-decoration: none; padding: 6px 0; }
+.voltar:hover { color: var(--tinta); }
+.vizinhos { display: flex; justify-content: space-between; gap: 12px; margin-top: 18px; }
+
+.favoritos { margin-top: 44px; }
+.favoritos h2 { font-family: var(--fonte-titulo); font-size: 1.6rem; margin: 0 0 4px; }
+.fileira { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 250px); gap: 18px; overflow-x: auto; padding: 8px 4px 18px; scroll-snap-type: x proximity; }
+.fileira .postal { scroll-snap-align: start; }
+.fileira .postal-nome { font-size: 1.1rem; }
+.rodape-inicio { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* painel e formulário no mundo postal */
+.ll-painel-cab { border-bottom: 0; box-shadow: 0 9px 0 -6px transparent; position: relative; }
+.ll-painel-cab::after { content: ''; position: absolute; left: 0; right: 0; bottom: -4px; height: 5px; background: repeating-linear-gradient(-45deg, var(--destaque) 0 10px, #fff 10px 15px, var(--azul) 15px 25px, #fff 25px 30px); }
+.ll-tipo-op { border-radius: 8px; }
+.fab { display: none; }
+
+@media (max-width: 860px) {
+  .topo-in { padding: 8px 14px; gap: 10px; flex-wrap: wrap; }
+  .marca { font-size: 1rem; }
+  .busca { order: 3; flex-basis: 100%; max-width: none; }
+  .topo-acoes { margin-left: auto; }
+  .topo-acoes .ll-btn-pri { display: none; }
+  .topo-acoes .ll-btn span { display: none; }
+  .topo-acoes .ll-btn { min-width: 42px; padding: 0 10px; }
+  .trilha { padding: 10px 16px 0; font-size: .85rem; }
+  main { padding: 8px 16px 110px; }
+  .cab-postal { grid-template-columns: 1fr; }
+  .ficha-wrap { padding: 16px 14px; margin-inline: -4px; }
+  .ficha-wrap .ll-ficha { display: flex; }
+  .ficha-wrap .ll-ficha-fotos { position: static; flex-direction: row; overflow-x: auto; }
+  .ficha-wrap .ll-ficha-fotos img { flex: 0 0 86% !important; }
+  .ficha-wrap .ll-ficha-fotos img + img { width: auto; margin: 0; transform: none; }
+  .ficha-selo { top: 18px; right: 14px; width: 64px; }
+  .ficha-wrap > .carimbo { width: 120px; top: 150px; right: 18px; }
+  .ficha-wrap .ll-ficha-titulo { padding-right: 0; }
+  .linha-postal { grid-template-columns: 84px 1fr; gap: 12px; padding: 8px; }
+  .linha-postal img, .linha-postal .mini-sem { width: 84px; height: 84px; }
+  .linha-acoes { grid-column: 1 / -1; justify-content: flex-end; margin-top: -8px; }
+  .linha-postal .carimbo { width: 84px; right: 104px; top: auto; bottom: 4px; }
+  .grade-selos { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .selo-in { min-height: 140px; }
+  .fab { display: grid; place-items: center; position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom)); z-index: 60; width: 62px; height: 62px; border-radius: 50%;
+    border: 3px solid #fff; background: var(--destaque); color: #fff; font-size: 1.7rem; box-shadow: var(--sombra); }
+}
+</style>
+</head>
+<body>
+<header class="topo">
+  <div class="topo-in">
+    <a class="marca" href="#/"><span class="marca-selo"><span>LL</span></span>Lista de Lugares</a>
+    <form class="busca" role="search" onsubmit="return false"><i class="ti ti-search" aria-hidden="true"></i><input type="search" id="busca" placeholder="Buscar lugar, cidade ou comida…" aria-label="Buscar" autocomplete="off"></form>
+    <div class="topo-acoes">
+      <button type="button" class="ll-btn ll-btn-sec" id="b-guia" aria-label="Gerar guia para o celular"><i class="ti ti-device-mobile" aria-hidden="true"></i><span>Guia p/ celular</span></button>
+      <button type="button" class="ll-btn ll-btn-sec" id="b-importar" aria-label="Importar PDF"><i class="ti ti-file-type-pdf" aria-hidden="true"></i><span>Importar PDF</span></button>
+      <button type="button" class="ll-btn ll-btn-pri" id="b-novo"><i class="ti ti-plus" aria-hidden="true"></i><span>Novo lugar</span></button>
+    </div>
+  </div>
+  <div class="faixa-aerea" aria-hidden="true"></div>
+</header>
+<nav class="trilha" id="trilha" aria-label="Onde você está"></nav>
+<main id="app"></main>
+<button type="button" class="fab" id="b-fab" aria-label="Novo lugar"><i class="ti ti-plus" aria-hidden="true"></i></button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="dados-japao.js"></script>
+<script src="nucleo.js"></script>
+<script>
+(function () {
+  const { esc, icone, h } = LL;
+  const app = document.getElementById('app'), trilha = document.getElementById('trilha'), busca = document.getElementById('busca');
+  const reduz = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let est = {}, ordem = 'favoritos', vista = 'tipos', profAnterior = 0;
+  const MESES = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+  const hoje = () => { const d = new Date(); return `${d.getDate()} ${MESES[d.getMonth()]} ${d.getFullYear()}`; };
+
+  /* carimbo postal (SVG) */
+  let nCar = 0;
+  const carimbo = (texto, data, extra) => {
+    const id = 'arco' + ++nCar;
+    return `<div class="carimbo ${extra || ''}" aria-hidden="true"><svg viewBox="0 0 220 120" fill="none" stroke="currentColor">
+      <circle cx="60" cy="60" r="52" stroke-width="3"/><circle cx="60" cy="60" r="36" stroke-width="1.6"/>
+      <path id="${id}" d="M 16 60 A 44 44 0 0 1 104 60" stroke="none"/>
+      <text font-family="Rethink Sans, sans-serif" font-weight="800" font-size="13" letter-spacing="2" fill="currentColor" stroke="none"><textPath href="#${id}" startOffset="50%" text-anchor="middle">${esc(texto.toUpperCase().slice(0, 16))}</textPath></text>
+      <text x="60" y="64" text-anchor="middle" font-family="Rethink Sans, sans-serif" font-weight="800" font-size="11" fill="currentColor" stroke="none">${esc(data)}</text>
+      <text x="60" y="84" text-anchor="middle" font-family="Rethink Sans, sans-serif" font-weight="700" font-size="9" fill="currentColor" stroke="none" letter-spacing="1.5">JÁ FUI</text>
+      ${[34, 48, 62, 76, 90].map(y => `<path d="M118 ${y} q 12 -7 24 0 t 24 0 t 24 0 t 24 0" stroke-width="3"/>`).join('')}
+    </svg></div>`;
+  };
+  const carimbarTela = (texto, sub) => {
+    if (reduz) return;
+    const c = h(carimbo(texto, sub || hoje(), 'carimbo-tela carimbando')); c.style.setProperty('--r', '-10deg');
+    document.body.append(c); setTimeout(() => { c.style.transition = 'opacity .4s'; c.style.opacity = 0; }, 900); setTimeout(() => c.remove(), 1400);
+  };
+
+  /* ---------- rotas ---------- */
+  const lerHash = () => {
+    const p = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
+    if (p[0] === 'busca') return { busca: p[1] || '' };
+    return { pais: p[0] || null, cidade: p[1] || null, tipo: p[2] || null, lugar: p[3] || null };
+  };
+  const rota = (...p) => '#/' + p.filter(Boolean).map(encodeURIComponent).join('/');
+  const ir = (...p) => { location.hash = rota(...p); };
+  const rotaLugar = l => rota(l.pais, l.cidade, l.tipo, l.id);
+  const prof = e => e.busca != null ? 2 : [e.pais, e.cidade, e.tipo, e.lugar].filter(Boolean).length;
+  const trocar = () => {
+    est = lerHash();
+    const p = prof(est), volta = p < profAnterior; profAnterior = p;
+    document.documentElement.classList.toggle('voltando', volta);
+    let feito = false;
+    const fazer = () => { if (feito) return; feito = true; render(); window.scrollTo(0, 0); };
+    if (document.startViewTransition && !reduz && document.visibilityState === 'visible') {
+      const t = document.startViewTransition(fazer); t.ready.catch(() => {}); t.finished.catch(() => {}); t.updateCallbackDone.catch(() => {});
+      setTimeout(fazer, 350);
+    } else fazer();
+  };
+  addEventListener('hashchange', trocar);
+
+  /* ---------- trilha ---------- */
+  const desenharTrilha = () => {
+    const itens = [[rota(), `${icone('home')}<span>Início</span>`]];
+    if (est.busca != null) itens.push([null, `Busca: “${esc(est.busca)}”`]);
+    const p = LL.pais(est.pais), c = LL.cidade(est.cidade), t = est.tipo && LL.tipo(est.tipo), l = LL.lugar(est.lugar);
+    if (p) itens.push([rota(p.id), `${LL.bandeira(p.id)}<span>${esc(p.nome)}</span>`]);
+    if (c) itens.push([rota(p.id, c.id), esc(c.nome)]);
+    if (t) itens.push([rota(p.id, c.id, t.id), esc(t.plural)]);
+    if (l) itens.push([null, esc(l.titulo)]);
+    trilha.innerHTML = itens.map(([href, txt], i) => (i ? icone('chevron-right') : '') +
+      (i === itens.length - 1 ? `<span aria-current="page">${txt}</span>` : `<a href="${href}">${txt}</a>`)).join('');
+  };
+
+  /* ---------- peças ---------- */
+  const fotoOu = (l, cls) => l.fotos && l.fotos[0] ? `<img class="${cls}" src="${esc(l.fotos[0])}" alt="" loading="lazy">` : `<div class="${cls === 'postal-foto' ? 'postal-sem-foto' : 'mini-sem'}" style="--cor-tipo:${LL.corTipo(l.tipo)}">${icone(LL.tipo(l.tipo).icone)}</div>`;
+  const barra = (v, t) => `<div class="progresso" role="img" aria-label="${v} de ${t} visitados"><span style="--p:${t ? Math.round(v / t * 100) : 0}%"></span></div>`;
+  const postalLugar = l => `<a class="postal" href="${rotaLugar(l)}">${fotoOu(l, 'postal-foto')}<div class="postal-txt">
+      <h3 class="postal-nome">${esc(l.titulo)}</h3><p class="postal-info">${LL.chipTipo(l.tipo)} ${esc(LL.cidade(l.cidade)?.nome || '')}</p></div></a>`;
+
+  const linha = l => {
+    const dist = LL.textoDistancia(l), res = LL.resumo(l);
+    return `<li class="linha-postal" data-id="${l.id}" style="--cor-tipo:${LL.corTipo(l.tipo)}">
+      ${fotoOu(l, '')}
+      <div class="linha-txt"><h2 class="linha-nome"><a href="${rotaLugar(l)}">${esc(l.titulo)}</a></h2>
+        ${res ? `<p class="linha-resumo">${esc(res)}</p>` : ''}
+        ${LL.seloSituacao(l) ? `<p class="linha-situ">${LL.seloSituacao(l)}</p>` : ''}
+        ${est.busca != null ? `<p class="linha-resumo">${LL.chipTipo(l.tipo)} ${esc(LL.cidade(l.cidade)?.nome || '')}</p>` : ''}
+        ${dist ? `<p class="linha-dist">${icone('walk')}${esc(dist)}</p>` : ''}</div>
+      <div class="linha-acoes">
+        <button type="button" class="ll-icone-btn" data-fav aria-pressed="${l.favorito}" aria-label="Quero ir" title="Quero ir">${icone(l.favorito ? 'heart-filled' : 'heart')}</button>
+        <button type="button" class="ll-icone-btn" data-vis aria-pressed="${l.visitado}" aria-label="Já fui" title="Já fui">${icone(l.visitado ? 'circle-check-filled' : 'circle-check')}</button>
+      </div>
+      ${l.visitado ? carimbo(LL.cidade(l.cidade)?.nome || '', '') : ''}
+    </li>`;
+  };
+  const ligarLinhas = raiz => raiz.querySelectorAll('.linha-postal').forEach(li => {
+    const id = li.dataset.id;
+    li.querySelector('[data-fav]').onclick = e => { const v = LL.alternarFavorito(id); const b = e.currentTarget; b.setAttribute('aria-pressed', v); b.innerHTML = icone(v ? 'heart-filled' : 'heart'); b.classList.remove('ll-pulo'); void b.offsetWidth; b.classList.add('ll-pulo'); };
+    li.querySelector('[data-vis]').onclick = e => {
+      const v = LL.alternarVisitado(id), b = e.currentTarget, l = LL.lugar(id);
+      b.setAttribute('aria-pressed', v); b.innerHTML = icone(v ? 'circle-check-filled' : 'circle-check');
+      li.querySelector('.carimbo')?.remove();
+      if (v) { const c = h(carimbo(LL.cidade(l.cidade)?.nome || '', '')); c.classList.add('carimbando'); li.append(c); }
+    };
+  });
+
+  /* ---------- níveis ---------- */
+  const inicio = () => {
+    const tot = LL.progresso({}), favs = LL.ordenar(LL.filtrar({ favorito: true }), 'nome');
+    app.innerHTML = `<h1 class="titulo-nivel">Para onde vamos?</h1>
+      <p class="sub">${LL.paisesComLugares().length} países · ${tot.total} lugares guardados · ${tot.visitados} já visitados</p>
+      <div class="grade-postais grade-paises">${LL.paisesComLugares().map(p => { const g = LL.progresso({ pais: p.id }); return `
+        <a class="postal postal-pais" href="${rota(p.id)}"><img class="postal-foto" src="${esc(p.capa)}" alt="" loading="lazy">
+          <div class="postal-txt"><h2 class="letras" style="--foto:url('${esc(p.capa)}')">${esc(p.nome)}</h2>
+          <p class="postal-info">${LL.bandeira(p.id)} ${LL.cidadesDe(p.id).length} ${LL.cidadesDe(p.id).length === 1 ? 'cidade' : 'cidades'} · ${g.total} lugares · ${g.visitados} visitados</p>${barra(g.visitados, g.total)}</div></a>`; }).join('')}</div>
+      ${favs.length ? `<section class="favoritos"><h2>Quero ir</h2><p class="sub">${favs.length} lugares marcados com coração</p><div class="fileira">${favs.map(postalLugar).join('')}</div></section>` : ''}
+      <div class="rodape-inicio"><button type="button" class="ll-btn ll-btn-sec" id="b-tipos">${icone('tag')}<span>Tipos de local</span></button>
+        <button type="button" class="ll-btn ll-btn-sec" id="b-imp2">${icone('file-type-pdf')}<span>Importar um PDF</span></button></div>`;
+    app.querySelector('#b-tipos').onclick = () => LL.abrirTipos();
+    app.querySelector('#b-imp2').onclick = importar;
+  };
+
+  const pais = () => {
+    const p = LL.pais(est.pais); if (!p) return inicio();
+    const g = LL.progresso({ pais: p.id });
+    app.innerHTML = `<header class="cab-postal"><div><h1 class="letras" style="--foto:url('${esc(p.capa)}')">${esc(p.nome)}</h1>
+        <p class="meta">${LL.bandeira(p.id)} <span><b>${LL.cidadesDe(p.id).length}</b> cidades e regiões</span><span><b>${g.total}</b> lugares</span><span><b>${g.visitados}</b> já visitados</span></p></div></header>
+      <div class="grade-postais">${LL.cidadesDe(p.id).map(c => { const x = LL.progresso({ cidade: c.id }); const completa = x.total && x.visitados === x.total; return `
+        <a class="postal" href="${rota(p.id, c.id)}">${c.capa ? `<img class="postal-foto" src="${esc(c.capa)}" alt="" loading="lazy">` : `<div class="postal-sem-foto">${icone('map-pin')}</div>`}
+          <div class="postal-txt"><h2 class="postal-nome">${esc(c.nome)}</h2><p class="postal-info">${x.total} lugares · ${x.visitados} de ${x.total} visitados</p>${barra(x.visitados, x.total)}</div>
+          ${completa ? carimbo(c.nome, 'COMPLETA') : ''}</a>`; }).join('')}</div>`;
+  };
+
+  let mapaCidade = null;
+  const cidade = () => {
+    const c = LL.cidade(est.cidade); if (!c) return pais();
+    const g = LL.progresso({ cidade: c.id }), tipos = LL.tiposEm({ cidade: c.id });
+    app.innerHTML = `<header class="cab-postal"><div><h1 class="letras" style="--foto:url('${esc(c.capa || LL.pais(c.pais).capa)}')">${esc(c.nome)}</h1>
+        <p class="meta"><span><b>${g.total}</b> lugares</span><span><b>${g.visitados}</b> de ${g.total} visitados</span><span><b>${g.favoritos}</b> quero ir</span></p></div></header>
+      <div class="abas" role="tablist" aria-label="Como ver">
+        <button type="button" role="tab" aria-selected="${vista === 'tipos'}" data-vista="tipos">${icone('stack-2')}Por tipo</button>
+        <button type="button" role="tab" aria-selected="${vista === 'mapa'}" data-vista="mapa">${icone('map')}Mapa</button></div>
+      <div id="vista"></div>`;
+    const v = app.querySelector('#vista');
+    if (vista === 'tipos') {
+      v.innerHTML = `<div class="grade-selos">${tipos.map(({ tipo: t, qtd }) => { const x = LL.progresso({ cidade: c.id, tipo: t.id }); return `
+        <a class="selo" href="${rota(c.pais, c.id, t.id)}" style="--cor-tipo:${LL.corTipo(t.id)}"><div class="selo-in">
+          <span class="selo-ic">${icone(t.icone)}</span><span class="selo-num">${qtd}</span>
+          <div><p class="selo-nome">${esc(qtd === 1 ? t.nome : t.plural)}</p><p class="selo-info">${x.visitados ? `${x.visitados} visitado${x.visitados > 1 ? 's' : ''}` : 'nenhum visitado ainda'}</p></div></div></a>`; }).join('')}
+        <a class="selo selo-novo" href="#" data-novo><div class="selo-in"><span class="selo-ic">${icone('plus')}</span><div><p class="selo-nome">Novo lugar</p><p class="selo-info">em ${esc(c.nome)}</p></div></div></a></div>`;
+      v.querySelector('[data-novo]').onclick = e => { e.preventDefault(); novo({ pais: c.pais, cidade: c.id }); };
+    } else {
+      v.innerHTML = `<div class="barra-lista"></div><div class="ll-mapa mapa-cidade"></div>`;
+      v.querySelector('.barra-lista').append(LL.ui.seletorOrigem({ filtro: { cidade: c.id } }));
+      mapaCidade = LL.mapa(v.querySelector('.mapa-cidade'), LL.filtrar({ cidade: c.id }), { aoClicar: id => location.hash = rotaLugar(LL.lugar(id)) });
+    }
+    app.querySelectorAll('[data-vista]').forEach(b => b.onclick = () => { vista = b.dataset.vista; cidade(); });
+  };
+
+  const listaTipo = (animar) => {
+    const c = LL.cidade(est.cidade), t = LL.tipo(est.tipo);
+    let ls = LL.filtrar({ cidade: c.id, tipo: t.id });
+    if (ordem === 'perto' && !LL.origem) ordem = 'favoritos';
+    ls = LL.ordenar(ls, ordem);
+    const antes = animar ? Object.fromEntries([...app.querySelectorAll('.linha-postal')].map(li => [li.dataset.id, li.getBoundingClientRect().top])) : null;
+    app.innerHTML = `<header class="cab-lista">${LL.chipTipo(t.id)}<span class="postal-info">${ls.length} em ${esc(c.nome)} · ${ls.filter(l => l.visitado).length} visitados</span>
+        <h1>${esc(t.plural)} em ${esc(c.nome)}</h1></header>
+      <div class="barra-lista"><div id="origem"></div>
+        <div class="ordem" role="group" aria-label="Ordenar">${icone('arrows-sort')}
+          ${[['perto', 'Mais perto'], ['favoritos', 'Quero ir primeiro'], ['nome', 'A–Z']].map(([k, n]) => `<button type="button" class="ll-chip" data-ordem="${k}" aria-pressed="${ordem === k}" ${k === 'perto' && !LL.origem ? 'title="Escolha de onde medir a distância"' : ''}>${n}</button>`).join('')}</div></div>
+      ${ls.length ? `<ol class="lista-postais">${ls.map(linha).join('')}</ol>` : `<p class="lista-vazia">Nenhum ${esc(t.nome.toLowerCase())} em ${esc(c.nome)} ainda.</p>`}
+      <button type="button" class="ll-btn ll-btn-sec mais" data-novo>${icone('plus')}<span>Adicionar ${esc(t.nome.toLowerCase())} em ${esc(c.nome)}</span></button>`;
+    app.querySelector('#origem').append(LL.ui.seletorOrigem({ filtro: { cidade: c.id } }));
+    app.querySelectorAll('[data-ordem]').forEach(b => b.onclick = () => {
+      if (b.dataset.ordem === 'perto' && !LL.origem) { LL.toast('Primeiro escolha de onde medir: sua localização ou um lugar.', { icone: 'current-location' }); app.querySelector('.ll-origem button, .ll-origem select')?.focus(); return; }
+      ordem = b.dataset.ordem; listaTipo(true);
+    });
+    app.querySelector('[data-novo]').onclick = () => novo({ pais: c.pais, cidade: c.id, tipo: t.id });
+    ligarLinhas(app);
+    if (antes && !reduz) app.querySelectorAll('.linha-postal').forEach(li => {
+      const a = antes[li.dataset.id]; if (a == null) return; const d = a - li.getBoundingClientRect().top; if (!d) return;
+      li.animate([{ transform: `translateY(${d}px)` }, { transform: 'none' }], { duration: 480, easing: 'cubic-bezier(.2,.9,.25,1.1)' });
+    });
+  };
+
+  const lugar = () => {
+    const l = LL.lugar(est.lugar); if (!l) return listaTipo();
+    const irmaos = LL.ordenar(LL.filtrar({ cidade: l.cidade, tipo: l.tipo }), ordem), i = irmaos.findIndex(x => x.id === l.id);
+    const ant = irmaos[i - 1], prox = irmaos[i + 1];
+    const t = LL.tipo(l.tipo);
+    app.innerHTML = `<a class="voltar" href="${rota(l.pais, l.cidade, l.tipo)}">${icone('arrow-left')} ${esc(t.plural)} em ${esc(LL.cidade(l.cidade).nome)}</a>
+      <div class="ficha-wrap" style="--cor-tipo:${LL.corTipo(l.tipo)}"><span class="selo ficha-selo"><span class="selo-in"><span class="selo-ic">${icone(t.icone)}</span></span></span>
+        ${l.visitado ? carimbo(LL.cidade(l.cidade).nome, hoje()) : ''}</div>
+      <nav class="vizinhos" aria-label="Outros ${esc(t.plural.toLowerCase())}">${ant ? `<a class="voltar" href="${rotaLugar(ant)}">${icone('arrow-left')} ${esc(ant.titulo)}</a>` : '<span></span>'}
+        ${prox ? `<a class="voltar" href="${rotaLugar(prox)}">${esc(prox.titulo)} ${icone('arrow-right')}</a>` : ''}</nav>`;
+    const wrap = app.querySelector('.ficha-wrap');
+    wrap.append(LL.ui.ficha(l, { aoEditar: id => LL.abrirEdicao(id, s => { carimbarTela('SALVO'); location.hash = rotaLugar(s); render(); }),
+      aposApagar: () => ir(l.pais, l.cidade, l.tipo) }));
+  };
+
+  const buscaRes = () => {
+    const ls = LL.buscar(est.busca);
+    app.innerHTML = `<header class="cab-lista"><h1>${ls.length ? `${ls.length} ${ls.length === 1 ? 'lugar' : 'lugares'} para “${esc(est.busca)}”` : `Nada para “${esc(est.busca)}”`}</h1></header>
+      ${ls.length ? `<ol class="lista-postais">${ls.map(linha).join('')}</ol>` : '<p class="lista-vazia">Tente outro nome, cidade ou tipo de comida (ex.: ramen, Quioto, templo).</p>'}`;
+    ligarLinhas(app);
+  };
+
+  const render = () => {
+    if (mapaCidade) { mapaCidade.remove(); mapaCidade = null; }
+    desenharTrilha();
+    if (est.busca == null && document.activeElement !== busca) busca.value = '';
+    if (est.busca != null) return buscaRes();
+    if (est.lugar) return lugar();
+    if (est.tipo) return listaTipo();
+    if (est.cidade) return cidade();
+    if (est.pais) return pais();
+    inicio();
+  };
+
+  /* ---------- ações ---------- */
+  const novo = ctx => LL.abrirNovo(ctx || { pais: est.pais, cidade: est.cidade, tipo: est.tipo }, l => { carimbarTela('SALVO'); location.hash = rotaLugar(l); });
+  const importar = () => LL.abrirImportacao(ids => { const l = LL.lugar(ids[0]); if (l) ir(l.pais, l.cidade); });
+  document.getElementById('b-novo').onclick = () => novo();
+  document.getElementById('b-fab').onclick = () => novo();
+  document.getElementById('b-importar').onclick = importar;
+  LL.config.guia = 'guia-postais.html';
+  document.getElementById('b-guia').onclick = () => LL.abrirGerarGuia({ pais: est.pais, cidade: est.cidade });
+  let tBusca;
+  busca.addEventListener('input', () => {
+    clearTimeout(tBusca);
+    tBusca = setTimeout(() => {
+      const q = busca.value.trim();
+      if (!q) { if (est.busca != null) history.back(); return; }
+      const alvo = rota('busca', q);
+      if (est.busca != null) { history.replaceState(null, '', alvo); est = lerHash(); render(); } else location.hash = alvo;
+    }, 220);
+  });
+
+  LL.aoMudar(ev => {
+    if (ev.acao === 'visitado' && ev.valor) {
+      if (est.lugar === ev.id) { const w = app.querySelector('.ficha-wrap'); w.querySelector(':scope > .carimbo')?.remove();
+        const c = h(carimbo(LL.cidade(LL.lugar(ev.id).cidade).nome, hoje())); c.classList.add('carimbando'); w.prepend(c); }
+      if (ev.cidadeCompleta) setTimeout(() => { const n = LL.cidade(LL.lugar(ev.id).cidade).nome; carimbarTela(n, 'COMPLETA'); LL.toast(`${n} completa! Você visitou todos os lugares guardados.`, { icone: 'trophy' }); }, 500);
+    }
+    if (ev.acao === 'visitado' && !ev.valor && est.lugar === ev.id) app.querySelector('.ficha-wrap > .carimbo')?.remove();
+    if (['salvo', 'apagado', 'restaurado', 'importado', 'tipos'].includes(ev.acao)) render();
+    if (ev.acao === 'origem' && (est.tipo || est.lugar)) { if (est.tipo && !est.lugar && LL.origem) ordem = 'perto'; render(); }
+  });
+
+  trocar();
+})();
+</script>
+</body>
+</html>

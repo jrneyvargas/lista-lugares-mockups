@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lista de Lugares — C · Mapa-guia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800;900&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="nucleo.css">
+<style>
+:root {
+  --agua: #f5f1e4; --terra: #8ed462; --sol: #f5e211; --coral: #ff705d; --lago: #2ba0ff; --lilas: #ebc1ff;
+  --fundo: var(--agua); --superficie: #fffdf7; --superficie-2: #ede7d4; --painel-fundo: #fffdf7;
+  --tinta: #2c2e2a; --tinta-2: #5a5d55; --linha: #d8d0b8; --placeholder: #6d7068;
+  --destaque: #2c2e2a; --destaque-hover: #11120f; --destaque-tinta: #fffdf7; --anel: rgba(43,160,255,.25); --anel-forte: rgba(43,160,255,.6); --foco: var(--lago);
+  --ok: #2f8a3a; --perigo: #d63a26; --fav: #e8412c; --aviso: #e6b800; --aviso-fundo: #fff6b0; --aviso-tinta: #4d4300;
+  --raio: 22px; --raio-chip: 999px; --raio-btn: 999px; --raio-input: 16px;
+  --fonte: 'Schibsted Grotesk', system-ui, sans-serif; --fonte-titulo: 'Schibsted Grotesk', system-ui, sans-serif;
+  --sombra: 0 10px 24px -12px rgba(44,46,42,.45);
+  --chip-ativo: var(--tinta); --chip-ativo-tinta: var(--agua); --toast-fundo: var(--tinta); --toast-tinta: var(--agua); --toast-acao: var(--sol);
+  --selecao: var(--sol); --selecao-tinta: var(--tinta); --dicas-fundo: #fff6b0; --resumo-fundo: #fffdf7;
+  --tipo-atrativo: #ff705d; --tipo-restaurante: #ff9f43; --tipo-hotel: #2ba0ff; --tipo-cafe: #c99466;
+  --tipo-compras: #f08ad6; --tipo-bar: #b39bff; --tipo-transporte: #2ec4b6; --tipo-experiencia: #8ed462;
+  --mola: cubic-bezier(.34, 1.56, .64, 1);
+}
+html, body { overflow-x: clip; }
+.heroi { overflow-x: clip; }
+/* ---------- topo ---------- */
+.topo { position: relative; z-index: 20; max-width: 1280px; margin: 0 auto; display: flex; align-items: center; gap: 14px; padding: 16px 28px; }
+.marca { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--tinta); font-weight: 800; font-size: 1.15rem; letter-spacing: -.02em; }
+.marca-lobo { width: 38px; height: 38px; }
+.topo-acoes { margin-left: auto; display: flex; gap: 8px; }
+.ll-btn { font-weight: 700; }
+.ll-btn-sec { background: transparent; border-color: var(--tinta); }
+.ll-btn-sec:hover { background: var(--superficie); border-color: var(--tinta); }
+.btn-bolha { padding-right: 6px; }
+.btn-bolha .bolha-seta { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--sol); color: var(--tinta); transition: transform .4s var(--mola); }
+.btn-bolha:hover .bolha-seta { transform: translateX(3px) rotate(90deg); }
+
+/* ---------- a mancha de terra (assinatura) ---------- */
+.heroi { position: relative; max-width: 1280px; margin: -76px auto 0; padding: 120px 28px 30px; min-height: 330px; isolation: isolate; }
+.terra { position: absolute; z-index: -1; top: -20px; right: -140px; width: min(880px, 92vw); height: 470px; overflow: visible; pointer-events: none; }
+.terra path { transition: d .55s var(--mola), fill .45s ease; }
+.lago { position: absolute; z-index: -1; left: -120px; bottom: -70px; width: 300px; height: 240px; pointer-events: none; }
+.lago path { transition: d .55s var(--mola), fill .45s ease; }
+.heroi h1 { margin: 0; font-weight: 800; font-size: clamp(2.8rem, 7.4vw, 6rem); line-height: .95; letter-spacing: -.045em; max-width: 13ch; text-wrap: balance; }
+.heroi h1 .em { display: block; }
+.heroi-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 18px; font-weight: 600; font-size: 1.05rem; }
+.adesivo { display: inline-flex; align-items: center; gap: .35em; padding: .3em .9em; border-radius: 999px; background: var(--sol); font-weight: 800; transform: rotate(-3deg); animation: cola .5s var(--mola); }
+@keyframes cola { from { transform: scale(.4) rotate(-20deg); opacity: 0; } }
+.anel-prog { display: inline-flex; align-items: center; gap: 8px; }
+.anel-prog .barra { width: 120px; height: 10px; border-radius: 99px; background: rgba(44,46,42,.15); overflow: hidden; }
+.anel-prog .barra span { display: block; height: 100%; width: var(--p); background: var(--tinta); border-radius: 99px; transition: width .5s var(--mola); }
+
+/* ---------- filtros em cápsulas ---------- */
+.filtros { position: sticky; top: 0; z-index: 15; background: color-mix(in srgb, var(--agua) 94%, transparent); backdrop-filter: blur(8px); border-bottom: 1.5px solid var(--linha); }
+.filtros-in { max-width: 1280px; margin: 0 auto; padding: 12px 28px; display: flex; flex-direction: column; gap: 8px; }
+.fileira { display: flex; align-items: center; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px 0; }
+.fileira::-webkit-scrollbar { display: none; }
+.fileira-rot { flex: none; width: 58px; font-size: .78rem; font-weight: 800; color: var(--tinta-2); }
+.capsula { --c: var(--sol); position: relative; flex: none; display: inline-flex; align-items: center; gap: .4em; min-height: 42px; padding: 0 46px 0 16px; border-radius: 999px;
+  border: 1.5px solid var(--tinta); background: var(--superficie); color: var(--tinta); font-weight: 700; font-size: .95rem; white-space: nowrap; text-decoration: none;
+  transition: padding .4s var(--mola), background-color .25s, transform .2s; }
+.capsula:hover { transform: translateY(-2px); }
+.capsula .bolha { position: absolute; top: 4px; left: calc(100% - 36px); display: grid; place-items: center; min-width: 32px; height: 32px; padding: 0 6px; border-radius: 999px;
+  background: var(--c); color: var(--tinta); font-size: .82rem; font-weight: 800; transition: left .4s var(--mola), background-color .25s; }
+.capsula[aria-pressed="true"] { background: var(--c); padding: 0 16px 0 46px; }
+.capsula[aria-pressed="true"] .bolha { left: 4px; background: var(--tinta); color: var(--c); }
+.capsula .ti { font-size: 1.2em; }
+.capsula .ll-bandeira { width: 1.3em; height: .95em; }
+.capsula-vis .bolha { font-size: .7rem; }
+.f-pais .capsula { --c: var(--sol); }
+.f-cidade .capsula { --c: var(--coral); }
+.f-extra .capsula { --c: var(--lilas); }
+.capsula-completa::after { content: '★'; position: absolute; top: -8px; right: -4px; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; background: var(--sol); border: 1.5px solid var(--tinta); font-size: .7rem; }
+.sep { flex: none; width: 1.5px; height: 26px; background: var(--linha); margin: 0 4px; }
+
+/* ---------- resultados ---------- */
+.resultado { max-width: 1280px; margin: 0 auto; padding: 22px 28px 80px; }
+.barra-res { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+.busca { position: relative; flex: 1 1 260px; max-width: 360px; }
+.busca .ti { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--tinta-2); }
+.busca input { width: 100%; min-height: 44px; border-radius: 999px; border: 1.5px solid var(--tinta); background: var(--superficie); padding: .4em 1em .4em 2.6em; }
+.busca input:focus { outline: 3px solid var(--lago); outline-offset: 2px; }
+.alterna { display: inline-flex; padding: 4px; border-radius: 999px; background: var(--superficie-2); gap: 2px; }
+.alterna button { border: 0; background: transparent; min-height: 36px; padding: 0 14px; border-radius: 999px; font-weight: 700; display: inline-flex; align-items: center; gap: .35em; color: var(--tinta-2); }
+.alterna button[aria-pressed="true"] { background: var(--tinta); color: var(--agua); }
+.ordem { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.ordem .ll-chip { border-color: var(--tinta); min-height: 36px; }
+.linha-ferr { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin-bottom: 22px; padding: 12px 16px; border-radius: 22px; background: var(--superficie); border: 1.5px solid var(--linha); }
+.grupo-cidade { margin-bottom: 34px; }
+.grupo-cidade h2 { display: flex; align-items: baseline; gap: 10px; margin: 0 0 14px; font-size: 1.6rem; font-weight: 800; letter-spacing: -.03em; }
+.grupo-cidade h2 small { font-size: .9rem; font-weight: 600; color: var(--tinta-2); letter-spacing: 0; }
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 22px 18px; }
+.lugar { position: relative; display: flex; flex-direction: column; gap: 8px; text-align: left; border: 0; background: transparent; padding: 0; color: inherit; cursor: pointer; animation: surge .45s var(--mola) both; }
+@keyframes surge { from { opacity: 0; transform: translateY(14px) scale(.97); } }
+.lugar-foto { position: relative; aspect-ratio: 5 / 4; }
+.lugar-foto img, .lugar-foto .sem { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; clip-path: url(#lobo-foto); transition: transform .4s var(--mola); }
+.lugar-foto .sem { display: grid; place-items: center; background: var(--cor-tipo); color: var(--tinta); font-size: 3rem; }
+.lugar:hover .lugar-foto img, .lugar:hover .lugar-foto .sem { transform: scale(1.03) rotate(-1deg); }
+.lugar-tipo { position: absolute; left: 8px; bottom: 10px; display: inline-flex; align-items: center; gap: .35em; padding: .3em .8em .3em .4em; border-radius: 999px; background: var(--cor-tipo); color: var(--tinta); font-weight: 800; font-size: .82rem; border: 1.5px solid var(--tinta); }
+.lugar-tipo .ti { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--tinta); color: var(--cor-tipo); font-size: 14px; }
+.lugar h3 { margin: 4px 0 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+.lugar-res { margin: 0; color: var(--tinta-2); font-size: .92rem; font-weight: 500; }
+.lugar-dist { display: inline-flex; align-items: center; gap: .35em; align-self: flex-start; padding: .2em .75em; border-radius: 999px; background: var(--lago); color: #fff; font-weight: 700; font-size: .85rem; }
+.lugar-acoes { position: absolute; top: 6px; right: 6px; display: flex; gap: 6px; z-index: 2; }
+.bot-redondo { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid var(--tinta); background: var(--superficie); color: var(--tinta); font-size: 1.15rem; transition: transform .3s var(--mola), background-color .2s; }
+.bot-redondo:hover { transform: scale(1.08); }
+.bot-redondo[data-fav][aria-pressed="true"] { background: var(--coral); }
+.bot-redondo[data-vis][aria-pressed="true"] { background: var(--terra); }
+.vazio { padding: 50px 20px; text-align: center; border-radius: 30px; border: 2px dashed var(--linha); color: var(--tinta-2); font-weight: 600; }
+.ll-mapa.mapa-grande { height: min(70vh, 640px); border-radius: 30px; border: 1.5px solid var(--tinta); overflow: hidden; }
+.convite { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 8px; }
+
+/* ---------- ajustes do núcleo no mundo do mapa-guia ---------- */
+.ll-tipo-op[aria-checked="true"], .ll-tipo-op[aria-checked="true"] .ti { color: var(--tinta); }
+.ll-tipo-op[aria-checked="true"] { border-color: var(--tinta); }
+.ll-tipo-op { border-radius: 20px; }
+.ll-pino { color: var(--tinta); border-color: var(--tinta); }
+.ll-tipo-ic { color: var(--tinta); }
+.ll-tipo-chip { color: var(--tinta); background: var(--cor-tipo); border: 1.5px solid var(--tinta); }
+.ll-chip { border-color: var(--tinta); }
+.ll-chip[aria-pressed="true"] { background: var(--sol); color: var(--tinta); border-color: var(--tinta); }
+.ll-acao { border-color: var(--tinta); }
+.ll-acao-fav[aria-pressed="true"] { background: var(--coral); color: var(--tinta); border-color: var(--tinta); }
+.ll-acao-vis[aria-pressed="true"] { background: var(--terra); color: var(--tinta); border-color: var(--tinta); }
+.ll-ficha-fotos img { clip-path: url(#lobo-foto); border-radius: 0; height: 260px; }
+.ll-ficha-titulo { font-weight: 800; letter-spacing: -.04em; font-size: clamp(2rem, 5vw, 2.8rem); }
+.ll-destaques { border-radius: 22px; border: 1.5px solid var(--tinta); background: var(--tinta); }
+.ll-destaque { background: color-mix(in srgb, var(--cor-tipo) 22%, var(--superficie)); }
+.ll-destaque dt { color: var(--tinta); }
+.ll-faixa { color: var(--tinta); }
+.ll-dicas { border: 1.5px solid var(--tinta); }
+.ll-painel-titulo { font-weight: 800; letter-spacing: -.03em; }
+.ll-painel { border-radius: 30px 0 0 30px; }
+.ll-painel-cab { border-bottom: 1.5px solid var(--linha); }
+.ll-imp-item { border-radius: 22px; border-color: var(--tinta); }
+.ll-bloco-tipo { background: color-mix(in srgb, var(--cor-tipo) 18%, var(--superficie)); border-color: var(--tinta); }
+.ll-bloco-tipo .ll-legenda { color: var(--tinta); }
+.ll-btn-pri { background: var(--tinta); }
+.ll-check input:checked + .ll-check-caixa { background: var(--terra); border-color: var(--tinta); color: var(--tinta); }
+
+@media (max-width: 760px) {
+  .topo { padding: 12px 16px; }
+  .topo-acoes .ll-btn span:not(.bolha-seta) { display: none; }
+  .topo-acoes .ll-btn { min-width: 44px; padding: 0 10px; }
+  .btn-bolha .bolha-seta { display: none; }
+  .heroi { padding: 92px 16px 22px; min-height: 250px; }
+  .terra { right: -260px; width: 620px; height: 360px; top: -30px; }
+  .lago { left: -170px; }
+  .filtros-in { padding: 10px 16px; }
+  .fileira-rot { display: none; }
+  .resultado { padding: 18px 16px 90px; }
+  .busca { max-width: none; }
+  .grade { grid-template-columns: 1fr 1fr; gap: 18px 12px; }
+  .lugar h3 { font-size: 1.05rem; }
+  .lugar-res { font-size: .82rem; }
+  .bot-redondo { width: 38px; height: 38px; }
+  .lugar-tipo span { display: none; }
+  .lugar-tipo { padding: .25em; }
+  .ll-painel { border-radius: 26px 26px 0 0; }
+}
+@media (max-width: 330px) { .grade { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <clipPath id="lobo-foto" clipPathUnits="objectBoundingBox"><path d="M0.06,0.18 C0.12,0.02 0.36,0.04 0.55,0.03 C0.78,0.02 0.97,0.08 0.98,0.3 C0.99,0.5 0.95,0.62 0.97,0.8 C0.99,0.97 0.8,1 0.6,0.97 C0.42,0.94 0.25,1 0.1,0.95 C-0.02,0.9 0.02,0.7 0.03,0.52 C0.04,0.38 0.01,0.3 0.06,0.18 Z"/></clipPath>
+</defs></svg>
+<header class="topo">
+  <a class="marca" href="#/"><svg class="marca-lobo" viewBox="0 0 40 40" aria-hidden="true"><path d="M6 14C8 4 22 2 31 6s7 16 3 23-16 9-24 5S4 24 6 14Z" fill="#8ed462" stroke="#2c2e2a" stroke-width="2"/><circle cx="25" cy="15" r="5" fill="#f5e211" stroke="#2c2e2a" stroke-width="2"/></svg>Lista de Lugares</a>
+  <div class="topo-acoes">
+    <button type="button" class="ll-btn ll-btn-sec" id="b-guia" aria-label="Gerar guia para o celular"><i class="ti ti-device-mobile" aria-hidden="true"></i><span>Guia p/ celular</span></button>
+    <button type="button" class="ll-btn ll-btn-sec" id="b-importar" aria-label="Importar PDF"><i class="ti ti-file-type-pdf" aria-hidden="true"></i><span>Importar PDF</span></button>
+    <button type="button" class="ll-btn ll-btn-pri btn-bolha" id="b-novo" aria-label="Novo lugar"><span>Novo lugar</span><span class="bolha-seta"><i class="ti ti-plus" aria-hidden="true"></i></span></button>
+  </div>
+</header>
+<section class="heroi" aria-live="polite">
+  <svg class="terra" viewBox="0 0 880 470" preserveAspectRatio="none" aria-hidden="true"><path id="terra-p" fill="#8ed462"/></svg>
+  <svg class="lago" viewBox="0 0 300 240" preserveAspectRatio="none" aria-hidden="true"><path id="lago-p" fill="#2ba0ff"/></svg>
+  <h1 id="titulo"></h1>
+  <div class="heroi-meta" id="meta"></div>
+</section>
+<nav class="filtros" aria-label="Filtros">
+  <div class="filtros-in" id="filtros"></div>
+</nav>
+<main class="resultado" id="res"></main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="dados-japao.js"></script>
+<script src="nucleo.js"></script>
+<script>
+(function () {
+  const { esc, icone } = LL;
+  const $ = id => document.getElementById(id);
+  let est = {}, vista = 'lista', ordem = 'favoritos', soFav = false, visit = null, busca = '', mapa = null, painelFicha = null;
+
+  /* ---------- a mancha de terra: forma orgânica que muda a cada filtro ---------- */
+  const semente = s => { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return () => ((h = Math.imul(h ^ (h >>> 15), 2246822507) >>> 0) / 4294967296); };
+  const lobo = (chave, w, hgt, n, var_) => {
+    const r = semente(chave), cx = w * .55, cy = hgt * .5, pts = [];
+    for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2, k = 1 - var_ / 2 + r() * var_; pts.push([cx + Math.cos(a) * w * .46 * k, cy + Math.sin(a) * hgt * .46 * k]); }
+    let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+    for (let i = 0; i < n; i++) {
+      const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+      const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6], c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+      d += ` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+    }
+    return d + 'Z';
+  };
+  const corTipoReal = id => getComputedStyle(document.documentElement).getPropertyValue('--tipo-' + id).trim() || LL.tipo(id).cor;
+  const moverTerra = () => {
+    const chave = [est.pais, est.cidade, est.tipo, busca].join('|') || 'inicio';
+    const terra = $('terra-p'), lago = $('lago-p');
+    terra.style.d = `path("${lobo(chave, 880, 470, 9, .38)}")`;
+    lago.style.d = `path("${lobo(chave + 'lago', 300, 240, 7, .45)}")`;
+    terra.style.fill = est.tipo ? corTipoReal(est.tipo) : est.cidade ? '#8ed462' : est.pais ? '#a6de7f' : '#8ed462';
+    lago.style.fill = est.tipo ? '#f5e211' : '#2ba0ff';
+  };
+
+  /* ---------- rotas ---------- */
+  const lerHash = () => { const p = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
+    return { pais: p[0] && p[0] !== '-' ? p[0] : null, cidade: p[1] && p[1] !== '-' ? p[1] : null, tipo: p[2] && p[2] !== '-' ? p[2] : null, lugar: p[3] || null }; };
+  const rota = (pais, cidade, tipo, lugar) => {
+    const partes = [pais, cidade, tipo, lugar]; while (partes.length && !partes[partes.length - 1]) partes.pop();
+    return '#/' + partes.map(x => x ? encodeURIComponent(x) : '-').join('/');
+  };
+
+  /* ---------- herói ---------- */
+  const heroi = () => {
+    const p = LL.pais(est.pais), c = LL.cidade(est.cidade), t = est.tipo && LL.tipo(est.tipo);
+    const f = { pais: est.pais, cidade: est.cidade, tipo: est.tipo };
+    const g = LL.progresso(f);
+    let titulo;
+    if (busca) titulo = `<span class="em">Buscando</span>“${esc(busca)}”`;
+    else if (t && c) titulo = `${esc(t.plural)} <span class="em">em ${esc(c.nome)}</span>`;
+    else if (t && p) titulo = `${esc(t.plural)} <span class="em">no ${esc(p.nome)}</span>`;
+    else if (c) titulo = esc(c.nome);
+    else if (p) titulo = esc(p.nome);
+    else titulo = 'Para onde<span class="em">vamos?</span>';
+    $('titulo').innerHTML = titulo;
+    const completa = c && LL.cidadeCompleta(c.id);
+    $('meta').innerHTML = `<span>${g.total} ${g.total === 1 ? 'lugar' : 'lugares'}</span>
+      <span class="anel-prog"><span class="barra" role="img" aria-label="${g.visitados} de ${g.total} visitados"><span style="--p:${g.total ? Math.round(g.visitados / g.total * 100) : 0}%"></span></span>${g.visitados} de ${g.total} visitados</span>
+      ${g.favoritos ? `<span>${icone('heart-filled')} ${g.favoritos} quero ir</span>` : ''}
+      ${completa ? `<span class="adesivo">${icone('star-filled')} ${esc(c.nome)} completa!</span>` : ''}`;
+    moverTerra();
+  };
+
+  /* ---------- filtros ---------- */
+  const capsula = (rot, ativo, href, bolha, extra = '') => `<a class="capsula ${extra}" href="${href}" aria-pressed="${ativo}">${rot}<span class="bolha">${ativo ? icone('check') : bolha}</span></a>`;
+  const filtros = () => {
+    const linhas = [];
+    linhas.push(`<div class="fileira f-pais" role="group" aria-label="País"><span class="fileira-rot">País</span>${LL.paisesComLugares().map(p =>
+      capsula(`${LL.bandeira(p.id)}<span>${esc(p.nome)}</span>`, est.pais === p.id, est.pais === p.id ? rota() : rota(p.id), LL.filtrar({ pais: p.id }).length)).join('')}</div>`);
+    if (est.pais) linhas.push(`<div class="fileira f-cidade" role="group" aria-label="Cidade"><span class="fileira-rot">Cidade</span>${LL.cidadesDe(est.pais).map(c =>
+      capsula(`<span>${esc(c.nome)}</span>`, est.cidade === c.id, est.cidade === c.id ? rota(est.pais, null, est.tipo) : rota(est.pais, c.id, est.tipo && LL.filtrar({ cidade: c.id, tipo: est.tipo }).length ? est.tipo : null),
+        LL.filtrar({ cidade: c.id }).length, LL.cidadeCompleta(c.id) ? 'capsula-completa' : '')).join('')}</div>`);
+    if (est.pais) {
+      const tipos = LL.tiposEm({ pais: est.pais, cidade: est.cidade });
+      linhas.push(`<div class="fileira f-tipo" role="group" aria-label="Tipo"><span class="fileira-rot">Tipo</span>${tipos.map(({ tipo: t, qtd }) =>
+        `<a class="capsula" href="${est.tipo === t.id ? rota(est.pais, est.cidade) : rota(est.pais, est.cidade, t.id)}" aria-pressed="${est.tipo === t.id}" style="--c:${LL.corTipo(t.id)}">${icone(t.icone)}<span>${esc(qtd === 1 ? t.nome : t.plural)}</span><span class="bolha">${est.tipo === t.id ? icone('check') : qtd}</span></a>`).join('')}
+        <span class="sep" aria-hidden="true"></span>
+        <button type="button" class="capsula capsula-vis" aria-pressed="${soFav}" data-fav style="--c:var(--coral)">${icone('heart')}<span>Quero ir</span><span class="bolha">${soFav ? icone('check') : icone('plus')}</span></button>
+        <button type="button" class="capsula capsula-vis" aria-pressed="${visit === false}" data-naofui style="--c:var(--lilas)">${icone('route')}<span>Ainda não fui</span><span class="bolha">${visit === false ? icone('check') : icone('plus')}</span></button></div>`);
+    }
+    $('filtros').innerHTML = linhas.join('');
+    const fav = $('filtros').querySelector('[data-fav]'); if (fav) fav.onclick = () => { soFav = !soFav; tudo(); };
+    const nf = $('filtros').querySelector('[data-naofui]'); if (nf) nf.onclick = () => { visit = visit === false ? null : false; tudo(); };
+    const ativo = $('filtros').querySelector('.f-cidade [aria-pressed=true], .f-tipo [aria-pressed=true]');
+    if (ativo) ativo.scrollIntoView({ block: 'nearest', inline: 'center' });
+  };
+
+  /* ---------- resultados ---------- */
+  const cartao = (l, i) => {
+    const t = LL.tipo(l.tipo), dist = LL.textoDistancia(l), res = LL.resumo(l);
+    return `<article class="lugar" data-id="${l.id}" style="--cor-tipo:${LL.corTipo(l.tipo)};animation-delay:${Math.min(i, 10) * 35}ms">
+      <div class="lugar-foto">${l.fotos?.[0] ? `<img src="${esc(l.fotos[0])}" alt="" loading="lazy">` : `<div class="sem">${icone(t.icone)}</div>`}
+        <span class="lugar-tipo">${icone(t.icone)}<span>${esc(t.nome)}</span></span></div>
+      <div class="lugar-acoes"><button type="button" class="bot-redondo" data-fav aria-pressed="${l.favorito}" aria-label="Quero ir: ${esc(l.titulo)}">${icone(l.favorito ? 'heart-filled' : 'heart')}</button>
+        <button type="button" class="bot-redondo" data-vis aria-pressed="${l.visitado}" aria-label="Já fui: ${esc(l.titulo)}">${icone('check')}</button></div>
+      <h3><a href="${rota(est.pais || l.pais, est.cidade, est.tipo, l.id)}" class="lugar-link" style="color:inherit;text-decoration:none">${esc(l.titulo)}</a></h3>
+      ${res ? `<p class="lugar-res">${esc(res)}</p>` : ''}
+      ${LL.seloSituacao(l)}
+      ${dist ? `<span class="lugar-dist">${icone('walk')}${esc(dist)}</span>` : ''}
+    </article>`;
+  };
+  const filtrados = () => {
+    let ls = busca ? LL.buscar(busca) : LL.filtrar({ pais: est.pais, cidade: est.cidade, tipo: est.tipo });
+    if (busca && est.pais) ls = ls.filter(l => l.pais === est.pais);
+    if (soFav) ls = ls.filter(l => l.favorito);
+    if (visit === false) ls = ls.filter(l => !l.visitado);
+    if (ordem === 'perto' && !LL.origem) ordem = 'favoritos';
+    return LL.ordenar(ls, ordem);
+  };
+  const resultados = () => {
+    if (mapa) { mapa.remove(); mapa = null; }
+    const ls = filtrados(), el = $('res');
+    el.innerHTML = `<div class="barra-res">
+        <label class="busca"><i class="ti ti-search" aria-hidden="true"></i><input type="search" id="busca" placeholder="Buscar lugar, cidade ou comida…" aria-label="Buscar" value="${esc(busca)}" autocomplete="off"></label>
+        <div class="alterna" role="group" aria-label="Ver como"><button type="button" aria-pressed="${vista === 'lista'}" data-vista="lista">${icone('layout-grid')}Lista</button><button type="button" aria-pressed="${vista === 'mapa'}" data-vista="mapa">${icone('map')}Mapa</button></div></div>
+      <div class="linha-ferr"><div id="origem"></div>
+        ${vista === 'lista' ? `<div class="ordem" role="group" aria-label="Ordenar">${[['perto', 'Mais perto'], ['favoritos', 'Quero ir primeiro'], ['nome', 'A–Z']].map(([k, n]) => `<button type="button" class="ll-chip" data-ordem="${k}" aria-pressed="${ordem === k}">${n}</button>`).join('')}</div>` : ''}</div>
+      <div id="corpo"></div>`;
+    el.querySelector('#origem').append(LL.ui.seletorOrigem({ filtro: { pais: est.pais, cidade: est.cidade } }));
+    const corpo = el.querySelector('#corpo');
+    if (vista === 'mapa') {
+      corpo.innerHTML = '<div class="ll-mapa mapa-grande"></div>';
+      mapa = LL.mapa(corpo.firstChild, ls, { aoClicar: id => location.hash = rota(est.pais || LL.lugar(id).pais, est.cidade, est.tipo, id) });
+    } else if (!ls.length) {
+      corpo.innerHTML = `<div class="vazio"><p>Nenhum lugar com esses filtros.</p><div class="convite" style="justify-content:center"><button type="button" class="ll-btn ll-btn-sec" data-limpar>${icone('x')}<span>Limpar filtros</span></button><button type="button" class="ll-btn ll-btn-pri" data-novo>${icone('plus')}<span>Adicionar um lugar</span></button></div></div>`;
+      corpo.querySelector('[data-limpar]').onclick = () => { soFav = false; visit = null; busca = ''; location.hash = rota(est.pais, est.cidade); tudo(); };
+      corpo.querySelector('[data-novo]').onclick = () => novo();
+    } else if (!est.cidade && !busca && ls.length > 6) {
+      const grupos = {}; ls.forEach(l => (grupos[l.cidade] = grupos[l.cidade] || []).push(l));
+      let i = 0;
+      corpo.innerHTML = Object.entries(grupos).map(([cid, g]) => `<section class="grupo-cidade"><h2>${esc(LL.cidade(cid).nome)} <small>${g.length} ${g.length === 1 ? 'lugar' : 'lugares'}</small></h2><div class="grade">${g.map(l => cartao(l, i++)).join('')}</div></section>`).join('');
+    } else corpo.innerHTML = `<div class="grade">${ls.map(cartao).join('')}</div>`;
+    ligar(el);
+  };
+  const ligar = el => {
+    const b = el.querySelector('#busca'); let t;
+    b.oninput = () => { clearTimeout(t); t = setTimeout(() => { busca = b.value.trim(); const pos = b.selectionStart; heroi(); resultados(); const nb = $('busca'); nb.focus(); nb.setSelectionRange(pos, pos); }, 250); };
+    el.querySelectorAll('[data-vista]').forEach(x => x.onclick = () => { vista = x.dataset.vista; resultados(); });
+    el.querySelectorAll('[data-ordem]').forEach(x => x.onclick = () => {
+      if (x.dataset.ordem === 'perto' && !LL.origem) { LL.toast('Escolha de onde medir: sua localização ou um lugar.', { icone: 'current-location' }); el.querySelector('.ll-origem button, .ll-origem select')?.focus(); return; }
+      ordem = x.dataset.ordem; resultados();
+    });
+    el.querySelectorAll('.lugar').forEach(card => {
+      const id = card.dataset.id;
+      card.onclick = e => { if (e.target.closest('button')) return; if (!e.target.closest('a')) location.hash = rota(est.pais || LL.lugar(id).pais, est.cidade, est.tipo, id); };
+      card.querySelector('[data-fav]').onclick = e => { const v = LL.alternarFavorito(id), b = e.currentTarget; b.setAttribute('aria-pressed', v); b.innerHTML = icone(v ? 'heart-filled' : 'heart'); b.classList.remove('ll-pulo'); void b.offsetWidth; b.classList.add('ll-pulo'); };
+      card.querySelector('[data-vis]').onclick = e => { const v = LL.alternarVisitado(id), b = e.currentTarget; b.setAttribute('aria-pressed', v); b.classList.remove('ll-pulo'); void b.offsetWidth; b.classList.add('ll-pulo'); };
+    });
+  };
+
+  /* ---------- ficha por cima ---------- */
+  const abrirFicha = () => {
+    const l = LL.lugar(est.lugar);
+    if (painelFicha) { const p = painelFicha; painelFicha = null; p.fechar(); }
+    if (!l) return;
+    const voltar = rota(est.pais, est.cidade, est.tipo);
+    const f = LL.ui.ficha(l, { aoEditar: id => LL.abrirEdicao(id), aposApagar: () => { painelFicha = null; location.hash = voltar; } });
+    painelFicha = LL.painel({ titulo: LL.tipo(l.tipo).nome, conteudo: f, classe: 'll-painel-form', aoFechar: () => { if (painelFicha) { painelFicha = null; history.replaceState(null, '', voltar); } } });
+  };
+
+  const tudo = () => { heroi(); filtros(); resultados(); };
+  let antes = {};
+  const trocar = () => {
+    est = lerHash();
+    const mudouFiltro = antes.pais !== est.pais || antes.cidade !== est.cidade || antes.tipo !== est.tipo;
+    if (mudouFiltro || !antes.pais && !est.pais) tudo();
+    abrirFicha();
+    antes = est;
+  };
+  addEventListener('hashchange', trocar);
+
+  /* ---------- ações ---------- */
+  const novo = ctx => LL.abrirNovo(ctx || { pais: est.pais, cidade: est.cidade, tipo: est.tipo }, l => { location.hash = rota(l.pais, l.cidade, l.tipo, l.id); LL.toast('Lugar salvo!', { icone: 'check' }); });
+  $('b-novo').onclick = () => novo();
+  LL.config.guia = 'guia-mapa-guia.html';
+  $('b-guia').onclick = () => LL.abrirGerarGuia({ pais: est.pais, cidade: est.cidade });
+  $('b-importar').onclick = () => LL.abrirImportacao(ids => { const l = LL.lugar(ids[0]); if (l) location.hash = rota(l.pais, l.cidade); });
+  LL.aoMudar(ev => {
+    if (ev.acao === 'apagado' && est.lugar === ev.id && painelFicha) { const p = painelFicha; painelFicha = null; p.fechar(); history.replaceState(null, '', rota(est.pais, est.cidade, est.tipo)); est = lerHash(); antes = est; }
+    if (['salvo', 'apagado', 'restaurado', 'importado', 'tipos'].includes(ev.acao)) { tudo(); if (ev.acao === 'salvo' && est.lugar === ev.id) abrirFicha(); }
+    if (ev.acao === 'origem') { if (LL.origem && vista === 'lista') ordem = 'perto'; resultados(); if (est.lugar) abrirFicha(); }
+    if (ev.acao === 'visitado' || ev.acao === 'favorito') {
+      heroi();
+      const card = document.querySelector(`.lugar[data-id="${ev.id}"] [data-${ev.acao === 'favorito' ? 'fav' : 'vis'}]`);
+      if (card) { card.setAttribute('aria-pressed', ev.valor); if (ev.acao === 'favorito') card.innerHTML = icone(ev.valor ? 'heart-filled' : 'heart'); }
+      if (ev.acao === 'visitado') { filtros(); if (ev.cidadeCompleta) LL.toast(`${LL.cidade(LL.lugar(ev.id).cidade).nome} completa! Ganhou uma estrela.`, { icone: 'star-filled' }); }
+    }
+  });
+  trocar();
+})();
+</script>
+</body>
+</html>

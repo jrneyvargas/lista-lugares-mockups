@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e0f11">
+<title>Guia de viagem — Painel</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@600;700&display=swap" data-embutir="fonte">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css" data-so-demo>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" data-embutir>
+<link rel="stylesheet" href="nucleo.css" data-embutir>
+<link rel="stylesheet" href="guia.css" data-embutir>
+<style>
+:root {
+  --fundo: #0e0f11; --superficie: #18191c; --superficie-2: #23252a; --painel-fundo: #141518;
+  --tinta: #f3f3f1; --tinta-2: #a9aeb8; --linha: #33363d; --placeholder: #8d93a0;
+  --destaque: #ffb400; --destaque-tinta: #121212; --dist-tinta: #ffb400; --anel: rgba(255,180,0,.25);
+  --ok: #45d27a; --perigo: #ff6b5e; --fav: #ffb400; --aviso-fundo: #3a2c06; --aviso-tinta: #ffd56b;
+  --raio: 6px; --raio-chip: 4px; --raio-btn: 4px; --raio-input: 4px;
+  --fonte: 'Barlow', system-ui, sans-serif; --fonte-titulo: 'Big Shoulders Display', 'Barlow Condensed', sans-serif; --fonte-cond: 'Barlow Condensed', 'Barlow', sans-serif;
+  --chip-ativo: var(--destaque); --chip-ativo-tinta: #121212; --toast-fundo: #f3f3f1; --toast-tinta: #121212; --toast-acao: #a35f00;
+  --selecao: var(--destaque); --selecao-tinta: #121212; --dicas-fundo: #22201a; --veu: rgba(0,0,0,.6);
+  --topo-fundo: linear-gradient(180deg, #c9ccd1 0%, #a3a8b0 48%, #8d929a 52%, #b4b8bf 100%); --topo-tinta: #121315; --tipo-tinta: #121212;
+  --tipo-atrativo: #ff7a66; --tipo-restaurante: #ffa94d; --tipo-hotel: #7aa7ff; --tipo-cafe: #d9a77e;
+  --tipo-compras: #f783ac; --tipo-bar: #b49bff; --tipo-transporte: #3bc9db; --tipo-experiencia: #69db7c;
+}
+.g-topo { border-bottom: 3px solid #050506; }
+.g-marca { font-family: var(--fonte-titulo); font-weight: 900; text-transform: uppercase; letter-spacing: .05em; font-size: 1.15rem; }
+.g-busca input { background: #111214; border-color: #000; font-family: var(--fonte-cond); }
+.g-voltar { color: var(--destaque); font-family: var(--fonte-cond); text-transform: uppercase; letter-spacing: .06em; }
+.placas { display: flex; flex-wrap: wrap; gap: 4px .35em; margin: 0; font-family: var(--fonte-titulo); font-weight: 800; text-transform: uppercase; line-height: 1; font-size: clamp(1.5rem, 7vw, 2.3rem); }
+.palavra { display: inline-flex; gap: 2px; white-space: nowrap; }
+.fc { display: inline-grid; place-items: center; min-width: .66em; height: 1.28em; padding: 0 .06em; background: linear-gradient(#26282c 0 50%, #1d1f22 50%); color: #f6f6f2; border-radius: 2px; position: relative; }
+.fc::after { content: ''; position: absolute; left: 0; right: 0; top: calc(50% - .5px); height: 1px; background: #000; }
+.fc.gira { animation: vira .055s linear; }
+@keyframes vira { 50% { transform: scaleY(.15); } }
+.g-meta { font-family: var(--fonte-cond); text-transform: uppercase; letter-spacing: .05em; }
+.g-cidade, .g-item, .g-atalho { border-radius: 4px; background: #131417; border-color: #26282d; }
+.g-cidade-txt b, .g-item-nome { font-family: var(--fonte-cond); font-weight: 700; text-transform: uppercase; letter-spacing: .02em; font-size: 1.2rem; }
+.g-item-dist { font-family: var(--fonte-titulo); font-weight: 800; font-size: 1.05rem; letter-spacing: .04em; }
+.g-bot { border-radius: 4px; background: #121316; border-color: #2c2f35; color: #6e737c; }
+.g-bot[data-fav][aria-pressed="true"] { background: var(--destaque); color: #121212; border-color: var(--destaque); }
+.g-bot[data-vis][aria-pressed="true"] { color: #0e0f11; }
+.g-tipo { border-radius: 4px; }
+.g-tipo b { font-family: var(--fonte-cond); text-transform: uppercase; letter-spacing: .04em; font-size: 1.15rem; }
+.g-tipo-num { font-weight: 800; }
+.g-abas { border-radius: 4px; } .g-abas button { border-radius: 3px; font-family: var(--fonte-cond); text-transform: uppercase; letter-spacing: .05em; }
+.g-abas [aria-selected="true"] { background: var(--destaque); color: #121212; }
+.ll-chip, .ll-btn { font-family: var(--fonte-cond); text-transform: uppercase; letter-spacing: .05em; }
+.ll-ficha-titulo { font-family: var(--fonte-titulo); font-weight: 900; text-transform: uppercase; }
+.ll-tipo-chip { color: #121212; background: var(--cor-tipo); border-radius: 3px; font-family: var(--fonte-cond); text-transform: uppercase; letter-spacing: .06em; }
+.ll-destaques { background: #050506; border-color: #050506; border-radius: 4px; }
+.ll-destaque { background: #17181b; }
+.ll-destaque dt { color: var(--cor-tipo); font-family: var(--fonte-cond); text-transform: uppercase; letter-spacing: .12em; }
+.ll-preco b { color: var(--destaque); font-family: var(--fonte-titulo); }
+.ll-acao-fav[aria-pressed="true"] { background: var(--destaque); color: #121212 !important; border-color: var(--destaque) !important; }
+.ll-acao-vis[aria-pressed="true"] { background: var(--ok); color: #0e0f11 !important; border-color: var(--ok) !important; }
+.ll-pino { color: #121212; border-color: #121212; }
+</style>
+</head>
+<body class="guia">
+<div id="guia"></div>
+<script id="guia-dados">window.GUIA_INFO = null;</script>
+<script src="dados-japao.js" data-so-demo></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" data-embutir></script>
+<script src="icones-svg.js" data-embutir></script>
+<script src="nucleo.js" data-embutir></script>
+<script>
+(function () {
+  LL.config.mapa = 'escuro';
+  const SORTE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const reduz = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.GUIA_CFG = {
+    layout: 'niveis',
+    cabecalho: ({ texto }) => `<h1 class="placas" aria-label="${LL.esc(texto)}" data-placas>${String(texto).toUpperCase().split(' ').filter(Boolean)
+      .map(p => `<span class="palavra" aria-hidden="true">${[...p].map(c => `<span class="fc">${LL.esc(c)}</span>`).join('')}</span>`).join('')}</h1>`,
+    depois: raiz => {
+      if (reduz) return;
+      raiz.querySelectorAll('[data-placas] .fc').forEach((s, i) => {
+        const final = s.textContent; let n = 3 + (i % 4);
+        const tick = () => { if (n-- <= 0) { s.textContent = final; return; } s.textContent = SORTE[(Math.random() * SORTE.length) | 0]; s.classList.remove('gira'); void s.offsetWidth; s.classList.add('gira'); setTimeout(tick, 52); };
+        setTimeout(tick, i * 22);
+      });
+    }
+  };
+})();
+</script>
+<script src="guia.js" data-embutir></script>
+</body>
+</html>
