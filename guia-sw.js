@@ -25,7 +25,7 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (/basemaps\.cartocdn\.com|tile\.openstreetmap/.test(url.hostname)) {
+  if (/tile\.openstreetmap/.test(url.hostname)) {
     e.respondWith(caches.open(MAPA).then(async c => (await c.match(req)) || fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; })));
     return;
   }

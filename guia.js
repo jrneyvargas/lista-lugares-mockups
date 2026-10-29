@@ -73,9 +73,13 @@
     }, e => falhou(e.code === 1 ? 'A permissão de localização foi negada (confira as permissões do Chrome).' : 'O GPS não respondeu agora.'), { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
   };
 
-  /* ---------- aberto por link: guarda o guia no celular para usar offline ---------- */
-  if ('serviceWorker' in navigator && window.isSecureContext && /^https?:$/.test(location.protocol)) {
-    navigator.serviceWorker.register(window.GUIA_SW || 'guia-sw.js').then(() => navigator.serviceWorker.ready).then(reg => {
+  /* ---------- aberto por link: guarda o guia no celular para usar offline ----------
+     Só o guia publicado (window.GUIA_SW). A demonstração não registra, para não
+     prender em cache as outras páginas do site de mockups; e desfaz registros antigos. */
+  if ('serviceWorker' in navigator && !window.GUIA_SW) {
+    navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => { if (/guia-sw\.js$/.test(r.active?.scriptURL || '')) r.unregister(); })).catch(() => {});
+  } else if ('serviceWorker' in navigator && window.isSecureContext && /^https?:$/.test(location.protocol)) {
+    navigator.serviceWorker.register(window.GUIA_SW).then(() => navigator.serviceWorker.ready).then(reg => {
       navigator.serviceWorker.addEventListener('message', ev => {
         if (ev.data?.guardado && !localStorage.getItem(CHAVE + '-offline')) {
           try { localStorage.setItem(CHAVE + '-offline', '1'); } catch (e) {}
@@ -83,7 +87,7 @@
         }
         const r = document.querySelector('.g-offline-ok'); if (r) r.hidden = false;
       });
-      reg.active?.postMessage({ cachear: [location.href.split('#')[0], ...performance.getEntriesByType('resource').map(e => e.name).filter(u => !/basemaps|tile/.test(u))] });
+      reg.active?.postMessage({ cachear: [location.href.split('#')[0], ...performance.getEntriesByType('resource').map(e => e.name).filter(u => !/tile\.openstreetmap/.test(u))] });
     }).catch(() => {});
   }
 

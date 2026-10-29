@@ -380,15 +380,13 @@
   };
 
   /* ---------- mapa (Leaflet) ---------- */
-  const TILES = {
-    voyager: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    claro: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    escuro: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-  };
+  // Blocos do OpenStreetMap (sem chave; o CARTO passou a exigir chave em 2026-10).
+  // O tema escuro é o mesmo mapa invertido por CSS (.ll-tiles-escuro).
+  const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   LL.mapa = (el, pontos, op = {}) => {
     if (!window.L) { el.innerHTML = `<p class="ll-mapa-off">${LL.icone('map')} Mapa indisponível sem internet.</p>`; return null; }
     const m = L.map(el, { scrollWheelZoom: false, zoomControl: !op.mini, attributionControl: !op.mini, dragging: !op.mini || !L.Browser.mobile });
-    L.tileLayer(TILES[op.estilo || LL.config.mapa] || TILES.voyager, { maxZoom: 19, attribution: '© OpenStreetMap · © CARTO' }).addTo(m);
+    L.tileLayer(TILES, { maxZoom: 19, attribution: '© OpenStreetMap', className: `ll-tiles-${op.estilo || LL.config.mapa}` }).addTo(m);
     const pts = pontos.filter(p => p.lat != null);
     pts.forEach(p => {
       const t = LL.tipo(p.tipo);
