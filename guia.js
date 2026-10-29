@@ -163,7 +163,7 @@
       m.querySelector('.g-ferr-lugar').append(ferramentas({}));
     } else if (est.tipo && est.tipo !== 'mapa') {
       const c = LL.cidade(est.cidade), t = LL.tipo(est.tipo);
-      m.innerHTML = `${voltar(rota(c.id), c.nome)}${CFG.cabecalho({ texto: `${t.plural} · ${c.nome}`, nivel: 'tipo', tipo: t.id })}${meta({ cidade: c.id, tipo: t.id })}<div class="g-ferr-lugar"></div>${lista(LL.filtrar({ cidade: c.id, tipo: t.id }))}`;
+      m.innerHTML = `${voltar(rota(c.id), c.nome)}${CFG.cabecalho({ texto: `${t.plural} em ${c.nome}`, nivel: 'tipo', tipo: t.id })}${meta({ cidade: c.id, tipo: t.id })}<div class="g-ferr-lugar"></div>${lista(LL.filtrar({ cidade: c.id, tipo: t.id }))}`;
       m.querySelector('.g-ferr-lugar').append(ferramentas({ cidade: c.id }));
     } else if (est.cidade) {
       const c = LL.cidade(est.cidade); if (!c) { location.hash = rota(); return; }
@@ -183,7 +183,7 @@
       m.querySelectorAll('[data-vista]').forEach(b => b.onclick = () => { vista = b.dataset.vista; if (est.tipo === 'mapa') { history.replaceState(null, '', rota(c.id)); est.tipo = null; } desenhar(); });
     } else {
       const favs = LL.filtrar({ favorito: true }).length;
-      m.innerHTML = `${CFG.cabecalho({ texto: P.nome, foto: fotoCidade(LL.cidadesDe(P.id)[0]?.id), nivel: 'inicio' })}${meta({})}
+      m.innerHTML = `${CFG.cabecalho({ texto: P.nome, foto: P.capa || fotoCidade(LL.cidadesDe(P.id)[0]?.id), nivel: 'inicio' })}${meta({})}
         ${favs ? `<a class="g-atalho" href="${rota('favoritos')}">${icone('heart-filled')}<span>Quero ir</span><b>${favs}</b>${icone('chevron-right')}</a>` : ''}
         <ul class="g-cidades">${LL.cidadesDe(P.id).map(c => { const g = LL.progresso({ cidade: c.id }), f = fotoCidade(c.id); return `
           <li><a class="g-cidade${g.total && g.visitados === g.total ? ' completa' : ''}" href="${rota(c.id)}">${f ? `<img src="${f}" alt="" loading="lazy">` : ''}

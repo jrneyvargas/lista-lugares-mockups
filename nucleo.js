@@ -135,7 +135,7 @@
     if (v.gratis) return { gratis: true, texto: 'Grátis' };
     if (!v.faixa && !v.valor) return null;
     return { faixa: v.faixa ? '$'.repeat(v.faixa) : '', local: v.valor ? `${p.simbolo}${fmtNum(v.valor)}` : '',
-      reais: v.valor ? `≈ R$ ${fmtNum(Math.max(1, Math.round(v.valor * p.cotacao)))}` : '' };
+      reais: v.valor ? `≈ R$ ${fmtNum(Math.max(1, Math.round(v.valor * p.cotacao)))}` : '' };
   };
   LL.textoValor = (v, paisId) => { const x = LL.valorPartes(v, paisId); if (!x) return ''; if (x.gratis) return 'Grátis'; return [x.local && `${x.local} ${x.reais}`, x.faixa].filter(Boolean).join(' · '); };
   LL.textoHorario = h => {
@@ -747,9 +747,8 @@
     const el = LL.h(`<article class="ll-ficha ll-ficha-${l.tipo}" style="--cor-tipo:${LL.corTipo(l.tipo)}">
       ${l.fotos?.length ? `<div class="ll-ficha-fotos">${l.fotos.map((f, i) => `<img src="${esc(f)}" alt="${esc(l.titulo)}${i ? ' — foto ' + (i + 1) : ''}" loading="lazy">`).join('')}</div>` : ''}
       <header class="ll-ficha-cab">
-        ${LL.chipTipo(l.tipo)}
         <h2 class="ll-ficha-titulo">${esc(l.titulo)}</h2>
-        <p class="ll-ficha-local">${LL.bandeira(l.pais)} ${esc(c?.nome || '')}, ${esc(p?.nome || '')}</p>
+        <p class="ll-ficha-local">${LL.chipTipo(l.tipo)} <span>${LL.bandeira(l.pais)} ${esc(c?.nome || '')}, ${esc(p?.nome || '')}</span></p>
         ${dist ? `<p class="ll-ficha-dist">${LL.icone('walk')} <span>${esc(dist)}</span> <span class="ll-de">de ${esc(LL.origem.nome)}</span></p>` : ''}
         <div class="ll-ficha-acoes">
           <button type="button" class="ll-acao ll-acao-fav" aria-pressed="${!!l.favorito}" data-fav>${LL.icone(l.favorito ? 'heart-filled' : 'heart')}<span>${l.favorito ? 'Quero ir' : 'Quero ir'}</span></button>
@@ -1051,9 +1050,11 @@
     progresso('arquivo');
     let bandeiraImg = null;
     try { bandeiraImg = await paraDataUrl(await (await fetch(`https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/flags/4x3/${p.bandeira}.svg`)).blob()); } catch (e) {}
+    let capa = null;
+    if (op.fotos && p.capa) try { capa = await LL.comprimirFoto(p.capa); } catch (e) {}
     const dados = {
       tipos: LL.tipos.filter(t => sel.some(l => l.tipo === t.id)),
-      paises: [{ ...p, capa: null, bandeiraImg }],
+      paises: [{ ...p, capa, bandeiraImg }],
       cidades: LL.cidades.filter(c => sel.some(l => l.cidade === c.id)).map(c => ({ ...c, capa: null })),
       lugares, pdfSimulado: null
     };

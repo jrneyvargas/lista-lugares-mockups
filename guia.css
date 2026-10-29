@@ -5,7 +5,7 @@ body.guia { min-height: 100dvh; }
 .g-topo { position: sticky; top: 0; z-index: 30; background: var(--topo-fundo, var(--superficie)); color: var(--topo-tinta, var(--tinta)); }
 .g-topo-in { max-width: 760px; margin: 0 auto; display: flex; align-items: center; gap: 10px; padding: 10px 16px; }
 .g-marca { display: flex; align-items: center; gap: 8px; min-width: 0; color: inherit; text-decoration: none; font-weight: 800; }
-.g-marca span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.g-marca span { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-height: 1.15; }
 .g-busca { margin-left: auto; position: relative; flex: 0 1 170px; min-width: 110px; }
 .g-busca svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--placeholder, var(--tinta-2)); }
 .g-busca input { width: 100%; min-height: 40px; border-radius: 99px; border: 1.5px solid var(--linha); background: var(--superficie); color: var(--tinta); padding: .35em .8em .35em 2.2em; }

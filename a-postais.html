@@ -46,7 +46,7 @@ body { min-height: 100dvh; }
 .trilha { max-width: 1240px; margin: 0 auto; padding: 14px 24px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: .9rem; color: var(--tinta-2); }
 .trilha a { color: var(--tinta-2); text-decoration: none; font-weight: 600; padding: 4px 6px; border-radius: 6px; display: inline-flex; align-items: center; gap: .35em; }
 .trilha a:hover { background: var(--superficie-2); color: var(--tinta); }
-.trilha [aria-current] { color: var(--tinta); font-weight: 750; padding: 4px 6px; }
+.trilha [aria-current] { color: var(--tinta); font-weight: 750; padding: 4px 6px; display: inline-flex; align-items: center; gap: .35em; }
 .trilha .ti-chevron-right { font-size: .9em; opacity: .6; }
 main { max-width: 1240px; margin: 0 auto; padding: 12px 24px 96px; view-transition-name: nivel; }
 ::view-transition-old(nivel) { animation: sai .18s ease-in both; }
@@ -55,10 +55,13 @@ main { max-width: 1240px; margin: 0 auto; padding: 12px 24px 96px; view-transiti
 @keyframes entra { from { opacity: 0; transform: translateX(32px); } }
 .voltando::view-transition-new(nivel) { animation-name: entra-volta; }
 @keyframes entra-volta { from { opacity: 0; transform: translateX(-32px); } }
+/* o cartão clicado cresce até virar o cabeçalho da próxima tela */
+::view-transition-group(cartao) { animation-duration: .42s; animation-timing-function: cubic-bezier(.2,.9,.2,1); z-index: 2; }
+::view-transition-old(cartao), ::view-transition-new(cartao) { height: 100%; object-fit: cover; }
 
 /* ---------- letras grandes de cartão-postal ---------- */
 .letras { font-family: var(--fonte-titulo); text-transform: uppercase; line-height: .9; letter-spacing: -.01em; margin: 0;
-  font-size: clamp(3rem, 11vw, 7.2rem); background: var(--foto) center 40% / cover, var(--azul); -webkit-background-clip: text; background-clip: text; color: transparent;
+  font-size: clamp(3rem, 11vw, 7.2rem); background: linear-gradient(rgba(255,255,255,.14), rgba(255,255,255,.14)), var(--foto) center 40% / cover, var(--azul); -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(2px 2px 0.5px #fff) drop-shadow(4px 5px 1px var(--azul-escuro)); padding: .06em .04em .1em 0; text-wrap: balance; }
 .cab-postal { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 12px 24px; padding: 18px 0 26px; }
 .cab-postal .meta { margin: 8px 0 0; color: var(--tinta-2); font-weight: 600; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
@@ -85,6 +88,8 @@ h1.titulo-nivel { font-family: var(--fonte-titulo); font-size: clamp(2rem, 5vw, 
 /* selo (tipo) com picote */
 .selo { --c: var(--cor-tipo); display: block; padding: 5px; background: radial-gradient(circle, transparent 3px, var(--superficie) 3.5px) -5px -5px / 10px 10px;
   filter: drop-shadow(0 4px 8px rgba(20,33,61,.18)); text-decoration: none; color: #fff; transition: transform .25s cubic-bezier(.2,.9,.25,1.3); }
+.grade-selos .selo { display: flex; }
+.grade-selos .selo-in { flex: 1; }
 .selo:hover { transform: translateY(-4px) rotate(-2deg); }
 .selo:nth-child(3n+2):hover { transform: translateY(-4px) rotate(2deg); }
 .selo-in { display: flex; flex-direction: column; justify-content: space-between; gap: 18px; min-height: 168px; padding: 16px; background: var(--c); position: relative; overflow: hidden; }
@@ -115,9 +120,9 @@ h1.titulo-nivel { font-family: var(--fonte-titulo); font-size: clamp(2rem, 5vw, 
 .ordem .ll-chip { min-height: 34px; font-size: .85rem; }
 
 /* ---------- lista de lugares ---------- */
-.cab-lista { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 14px 0 18px; }
-.cab-lista h1 { font-family: var(--fonte-titulo); font-size: clamp(1.9rem, 5vw, 2.8rem); line-height: 1; margin: 0; flex-basis: 100%; }
-.cab-lista .ll-tipo-chip { font-size: .9rem; }
+.cab-lista { margin: 14px 0 18px; }
+.cab-lista h1 { font-family: var(--fonte-titulo); font-size: clamp(1.9rem, 5vw, 2.8rem); line-height: 1; margin: 0; }
+.cab-lista .meta { margin: 8px 0 0; color: var(--tinta-2); font-weight: 600; }
 .lista-postais { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
 .linha-postal { position: relative; display: grid; grid-template-columns: 128px 1fr auto; align-items: center; gap: 18px; padding: 10px 12px 10px 10px; background: var(--superficie);
   border-radius: 8px; box-shadow: 0 1px 2px rgba(20,33,61,.1), 0 8px 18px -14px rgba(20,33,61,.45); transition: transform .2s cubic-bezier(.2,.9,.25,1.2), box-shadow .2s; }
@@ -154,7 +159,9 @@ h1.titulo-nivel { font-family: var(--fonte-titulo); font-size: clamp(2rem, 5vw, 
 .ficha-selo { position: absolute; top: 26px; right: 22px; width: 78px; z-index: 2; }
 .ficha-selo .selo-in { min-height: 92px; gap: 4px; padding: 10px; align-items: center; justify-content: center; }
 .ficha-selo .selo-ic { font-size: 2rem; }
-.ficha-wrap > .carimbo { width: 170px; top: 64px; right: 64px; --r: -14deg; transform: rotate(var(--r)); z-index: 3; }
+/* o carimbo inutiliza o selo do tipo, como no correio, sem cobrir o título */
+.ficha-wrap > .carimbo { width: 150px; top: 34px; right: -10px; --r: -14deg; transform: rotate(var(--r)); z-index: 3; }
+.ficha-wrap:has(> .carimbo) .ll-ficha-titulo { padding-right: 150px; }
 .ficha-wrap .ll-dicas { background: #fff repeating-linear-gradient(transparent 0 27px, #c9d6f2 27px 28px); border: 1px solid var(--linha); padding: 12px 16px 10px; }
 .ficha-wrap .ll-dicas p { font-family: var(--fonte-mao); font-size: 1.15rem; line-height: 28px; color: var(--azul-escuro); }
 .ficha-wrap .ll-destaques { border-radius: 6px; }
@@ -168,6 +175,8 @@ h1.titulo-nivel { font-family: var(--fonte-titulo); font-size: clamp(2rem, 5vw, 
 .fileira .postal { scroll-snap-align: start; }
 .fileira .postal-nome { font-size: 1.1rem; }
 .rodape-inicio { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 10px; }
+.nota-demo { margin: 28px 0 0; color: var(--tinta-2); font-size: .82rem; }
+.nota-demo a { color: inherit; }
 
 /* painel e formulário no mundo postal */
 .ll-painel-cab { border-bottom: 0; box-shadow: 0 9px 0 -6px transparent; position: relative; }
@@ -187,18 +196,20 @@ h1.titulo-nivel { font-family: var(--fonte-titulo); font-size: clamp(2rem, 5vw, 
   main { padding: 8px 16px 110px; }
   .cab-postal { grid-template-columns: 1fr; }
   .ficha-wrap { padding: 16px 14px; margin-inline: -4px; }
-  .ficha-wrap .ll-ficha { display: flex; }
+  .ficha-wrap .ll-ficha { display: flex; align-items: stretch; }
   .ficha-wrap .ll-ficha-fotos { position: static; flex-direction: row; overflow-x: auto; }
   .ficha-wrap .ll-ficha-fotos img { flex: 0 0 86% !important; }
   .ficha-wrap .ll-ficha-fotos img + img { width: auto; margin: 0; transform: none; }
   .ficha-selo { top: 18px; right: 14px; width: 64px; }
   .ficha-wrap > .carimbo { width: 120px; top: 150px; right: 18px; }
-  .ficha-wrap .ll-ficha-titulo { padding-right: 0; }
+  .ficha-wrap .ll-ficha-titulo, .ficha-wrap:has(> .carimbo) .ll-ficha-titulo { padding-right: 0; }
   .linha-postal { grid-template-columns: 84px 1fr; gap: 12px; padding: 8px; }
   .linha-postal img, .linha-postal .mini-sem { width: 84px; height: 84px; }
   .linha-acoes { grid-column: 1 / -1; justify-content: flex-end; margin-top: -8px; }
   .linha-postal .carimbo { width: 84px; right: 104px; top: auto; bottom: 4px; }
-  .grade-selos { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .grade-selos { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .selo-nome { font-size: clamp(.85rem, 3.7vw, 1.35rem); overflow-wrap: break-word; }
+  .grade-selos .selo-in { padding: 12px; }
   .selo-in { min-height: 140px; }
   .fab { display: grid; place-items: center; position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom)); z-index: 60; width: 62px; height: 62px; border-radius: 50%;
     border: 3px solid #fff; background: var(--destaque); color: #fff; font-size: 1.7rem; box-shadow: var(--sombra); }
@@ -263,15 +274,33 @@ h1.titulo-nivel { font-family: var(--fonte-titulo); font-size: clamp(2rem, 5vw, 
   const ir = (...p) => { location.hash = rota(...p); };
   const rotaLugar = l => rota(l.pais, l.cidade, l.tipo, l.id);
   const prof = e => e.busca != null ? 2 : [e.pais, e.cidade, e.tipo, e.lugar].filter(Boolean).length;
+  /* cartão clicado (postal, selo ou linha): na transição ele cresce até o cabeçalho da tela seguinte */
+  let clicado = null;
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a.postal, a.selo:not(.selo-novo), .linha-postal');
+    clicado = a ? { el: a, quando: Date.now() } : null;
+  }, true);
+  const ORIGEM = '.postal-foto, .postal-sem-foto, .selo-in, .linha-postal > img, .linha-postal > .mini-sem';
+  const DESTINO = ['.cab-postal .letras', '.cab-lista h1', '.ficha-wrap .ll-ficha-fotos img', '.ficha-wrap'];
+  const nomear = (el, n) => { if (el) el.style.viewTransitionName = n; };
   const trocar = () => {
     est = lerHash();
     const p = prof(est), volta = p < profAnterior; profAnterior = p;
     document.documentElement.classList.toggle('voltando', volta);
-    let feito = false;
-    const fazer = () => { if (feito) return; feito = true; render(); window.scrollTo(0, 0); };
+    app.querySelectorAll('[style*="view-transition-name"]').forEach(el => nomear(el, ''));
+    const origem = !volta && clicado && Date.now() - clicado.quando < 1500 && app.contains(clicado.el) ? clicado.el.querySelector(ORIGEM) : null;
+    clicado = null;
+    let feito = false, destino = null;
+    const fazer = () => {
+      if (feito) return; feito = true; nomear(origem, '');
+      render(); window.scrollTo(0, 0);
+      if (origem) { destino = DESTINO.map(s => app.querySelector(s)).find(Boolean); nomear(destino, 'cartao'); }
+    };
     if (document.startViewTransition && !reduz && document.visibilityState === 'visible') {
-      const t = document.startViewTransition(fazer); t.ready.catch(() => {}); t.finished.catch(() => {}); t.updateCallbackDone.catch(() => {});
-      setTimeout(fazer, 350);
+      nomear(origem, 'cartao');
+      const t = document.startViewTransition(fazer); t.ready.catch(() => {}); t.updateCallbackDone.catch(() => {});
+      t.finished.catch(() => {}).finally(() => nomear(destino, ''));
+      setTimeout(fazer, 350); setTimeout(() => nomear(destino, ''), 1200);
     } else fazer();
   };
   addEventListener('hashchange', trocar);
@@ -333,7 +362,8 @@ h1.titulo-nivel { font-family: var(--fonte-titulo); font-size: clamp(2rem, 5vw, 
           <p class="postal-info">${LL.bandeira(p.id)} ${LL.cidadesDe(p.id).length} ${LL.cidadesDe(p.id).length === 1 ? 'cidade' : 'cidades'} · ${g.total} lugares · ${g.visitados} visitados</p>${barra(g.visitados, g.total)}</div></a>`; }).join('')}</div>
       ${favs.length ? `<section class="favoritos"><h2>Quero ir</h2><p class="sub">${favs.length} lugares marcados com coração</p><div class="fileira">${favs.map(postalLugar).join('')}</div></section>` : ''}
       <div class="rodape-inicio"><button type="button" class="ll-btn ll-btn-sec" id="b-tipos">${icone('tag')}<span>Tipos de local</span></button>
-        <button type="button" class="ll-btn ll-btn-sec" id="b-imp2">${icone('file-type-pdf')}<span>Importar um PDF</span></button></div>`;
+        <button type="button" class="ll-btn ll-btn-sec" id="b-imp2">${icone('file-type-pdf')}<span>Importar um PDF</span></button></div>
+      <p class="nota-demo">Exemplo com dados de demonstração (horários, preços e dicas inventados) · fotos: <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener">Wikimedia Commons</a> · mapas © OpenStreetMap</p>`;
     app.querySelector('#b-tipos').onclick = () => LL.abrirTipos();
     app.querySelector('#b-imp2').onclick = importar;
   };
@@ -381,8 +411,9 @@ h1.titulo-nivel { font-family: var(--fonte-titulo); font-size: clamp(2rem, 5vw, 
     if (ordem === 'perto' && !LL.origem) ordem = 'favoritos';
     ls = LL.ordenar(ls, ordem);
     const antes = animar ? Object.fromEntries([...app.querySelectorAll('.linha-postal')].map(li => [li.dataset.id, li.getBoundingClientRect().top])) : null;
-    app.innerHTML = `<header class="cab-lista">${LL.chipTipo(t.id)}<span class="postal-info">${ls.length} em ${esc(c.nome)} · ${ls.filter(l => l.visitado).length} visitados</span>
-        <h1>${esc(t.plural)} em ${esc(c.nome)}</h1></header>
+    const nVis = ls.filter(l => l.visitado).length;
+    app.innerHTML = `<header class="cab-lista"><h1>${esc(t.plural)} em ${esc(c.nome)}</h1>
+        <p class="meta">${ls.length} ${ls.length === 1 ? 'lugar' : 'lugares'} · ${nVis} ${nVis === 1 ? 'visitado' : 'visitados'}</p></header>
       <div class="barra-lista"><div id="origem"></div>
         <div class="ordem" role="group" aria-label="Ordenar">${icone('arrows-sort')}
           ${[['perto', 'Mais perto'], ['favoritos', 'Quero ir primeiro'], ['nome', 'A–Z']].map(([k, n]) => `<button type="button" class="ll-chip" data-ordem="${k}" aria-pressed="${ordem === k}" ${k === 'perto' && !LL.origem ? 'title="Escolha de onde medir a distância"' : ''}>${n}</button>`).join('')}</div></div>
